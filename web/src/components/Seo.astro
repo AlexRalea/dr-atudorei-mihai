@@ -1,0 +1,45 @@
+---
+import { getSettings } from '../lib/content';
+import type { ImageData } from '../lib/types';
+
+export interface SeoProps {
+  title?: string;
+  description?: string;
+  image?: ImageData | null;
+  noindex?: boolean;
+  type?: 'website' | 'article';
+  jsonLd?: (Record<string, unknown> | null)[];
+}
+
+const { title, description, image, noindex, type = 'website', jsonLd = [] } = Astro.props as SeoProps;
+const settings = await getSettings();
+
+const fullTitle = title ? `${title} | ${settings.siteName}` : `${settings.siteName} · ${settings.specialty}`;
+const metaDescription = description || settings.description;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = image?.url ?? new URL('/og-default.png', Astro.site).href;
+
+// Până la setarea domeniului final, site-ul nu se lasă indexat.
+const blockIndexing = noindex || !import.meta.env.PUBLIC_SITE_URL;
+
+const structuredData = jsonLd
+  .filter((item): item is Record<string, unknown> => Boolean(item))
+  .map((item) => JSON.stringify(item).replace(/</g, '\\u003c'));
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={metaDescription} />
+<link rel="canonical" href={canonical} />
+{blockIndexing && <meta name="robots" content="noindex, nofollow" />}
+
+<meta property="og:type" content={type} />
+<meta property="og:locale" content="ro_RO" />
+<meta property="og:site_name" content={settings.siteName} />
+<meta property="og:title" content={title ?? settings.siteName} />
+<meta property="og:description" content={metaDescription} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+{image?.alt && <meta property="og:image:alt" content={image.alt} />}
+<meta name="twitter:card" content="summary_large_image" />
+
+{structuredData.map((data) => <script is:inline type="application/ld+json" set:html={data} />)}

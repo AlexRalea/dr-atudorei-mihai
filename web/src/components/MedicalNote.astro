@@ -1,0 +1,57 @@
+---
+import { getDoctor } from '../lib/content';
+import { formatDate } from '../lib/format';
+import { MEDICAL_DISCLAIMER } from '../lib/labels';
+import { routes } from '../lib/routes';
+import Icon from './Icon.astro';
+
+interface Props {
+  reviewedAt?: string;
+}
+
+const { reviewedAt } = Astro.props;
+const doctor = await getDoctor();
+---
+
+<aside class="medical-note">
+  <Icon name="shield-check" size={22} />
+  <div>
+    {
+      reviewedAt && (
+        <p class="reviewed">
+          Informații revizuite medical de <a href={routes.about}>{doctor.name}</a> la{' '}
+          <time datetime={reviewedAt}>{formatDate(reviewedAt)}</time>.
+        </p>
+      )
+    }
+    <p>{MEDICAL_DISCLAIMER}</p>
+  </div>
+</aside>
+
+<style>
+  .medical-note {
+    display: flex;
+    gap: 0.9rem;
+    padding: 1.25rem 1.4rem;
+    border-radius: var(--radius);
+    background: var(--color-dusty-soft);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .medical-note :global(.icon) {
+    flex-shrink: 0;
+    color: var(--color-dusty-deep);
+  }
+
+  .reviewed {
+    margin-bottom: 0.35rem;
+    color: var(--color-navy);
+    font-weight: 600;
+  }
+
+  a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+</style>

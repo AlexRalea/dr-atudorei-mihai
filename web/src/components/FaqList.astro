@@ -1,0 +1,113 @@
+---
+import type { Faq } from '../lib/types';
+import Icon from './Icon.astro';
+
+interface Props {
+  faqs: Faq[];
+}
+
+const { faqs } = Astro.props;
+---
+
+<div class="faq-list">
+  {
+    faqs.map((faq) => (
+      <details class="faq-item">
+        <summary>
+          <span>{faq.question}</span>
+          <span class="faq-icon" aria-hidden="true">
+            <Icon name="chevron-down" size={20} />
+          </span>
+        </summary>
+        <div class="faq-answer">
+          <p>{faq.answer}</p>
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  .faq-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .faq-item {
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    transition:
+      border-color 260ms var(--ease),
+      box-shadow 260ms var(--ease);
+  }
+
+  .faq-item[open] {
+    border-color: var(--color-dusty);
+    box-shadow: var(--shadow-sm);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 1.4rem;
+    font-weight: 600;
+    font-size: 1.125rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:focus-visible {
+    outline-offset: -3px;
+    border-radius: var(--radius);
+  }
+
+  .faq-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--color-dusty-soft);
+    color: var(--color-dusty-deep);
+    transition:
+      transform 320ms var(--ease),
+      background-color 320ms var(--ease);
+  }
+
+  .faq-item[open] .faq-icon {
+    transform: rotate(180deg);
+    background: var(--color-dusty-light);
+  }
+
+  .faq-answer {
+    padding: 0 1.4rem 1.3rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Deschidere lină, acolo unde browserul o permite. */
+  .faq-item::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 360ms var(--ease),
+      content-visibility 360ms allow-discrete;
+  }
+
+  .faq-item[open]::details-content {
+    block-size: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-item::details-content {
+      transition: none;
+    }
+  }
+</style>

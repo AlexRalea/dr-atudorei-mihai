@@ -1,0 +1,48 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  intro?: string;
+  align?: 'start' | 'center';
+  id?: string;
+}
+
+const { eyebrow, title, intro, align = 'start', id } = Astro.props;
+---
+
+<header class:list={['section-header', `align-${align}`]} data-reveal>
+  <div class="section-header-text">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h2 id={id}>{title}</h2>
+    {intro && <p class="lead">{intro}</p>}
+  </div>
+  <slot />
+</header>
+
+<style>
+  .section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  }
+
+  .section-header-text {
+    max-width: 44rem;
+  }
+
+  .section-header-text > * + * {
+    margin-top: 1rem;
+  }
+
+  .align-center {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .align-center .section-header-text {
+    margin-inline: auto;
+  }
+</style>

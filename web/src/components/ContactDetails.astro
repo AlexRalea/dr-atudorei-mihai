@@ -1,0 +1,115 @@
+---
+import { getSettings } from '../lib/content';
+import { isPlaceholder, telHref } from '../lib/format';
+import Icon from './Icon.astro';
+
+const settings = await getSettings();
+const tel = telHref(settings.phone);
+const { clinic } = settings;
+---
+
+<ul class="contact-details">
+  <li>
+    <span class="detail-icon"><Icon name="phone" size={20} /></span>
+    <div>
+      <p class="detail-label">Telefon</p>
+      {tel ? <a href={tel} class="detail-value">{settings.phone}</a> : <p class="detail-value">{settings.phone}</p>}
+    </div>
+  </li>
+  {
+    !isPlaceholder(settings.email) && (
+      <li>
+        <span class="detail-icon">
+          <Icon name="mail" size={20} />
+        </span>
+        <div>
+          <p class="detail-label">Email</p>
+          <a href={`mailto:${settings.email}`} class="detail-value">
+            {settings.email}
+          </a>
+        </div>
+      </li>
+    )
+  }
+  <li>
+    <span class="detail-icon"><Icon name="map-pin" size={20} /></span>
+    <div>
+      <p class="detail-label">Unde ne găsiți</p>
+      <p class="detail-value">{clinic.name}</p>
+      <p class="muted">
+        {clinic.street}, {clinic.city}
+        {clinic.county && `, ${clinic.county}`}
+      </p>
+      {
+        clinic.mapsUrl && (
+          <a href={clinic.mapsUrl} class="link-arrow" target="_blank" rel="noopener noreferrer">
+            Deschide în Google Maps
+            <Icon name="external-link" size={16} />
+          </a>
+        )
+      }
+    </div>
+  </li>
+  <li>
+    <span class="detail-icon"><Icon name="clock" size={20} /></span>
+    <div>
+      <p class="detail-label">Program</p>
+      {
+        settings.hours.map((entry) => (
+          <p class="detail-value">
+            {entry.days}: <span class="muted">{entry.hours}</span>
+          </p>
+        ))
+      }
+    </div>
+  </li>
+</ul>
+
+<style>
+  .contact-details {
+    display: grid;
+    gap: 1.5rem;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .detail-icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 14px;
+    background: var(--color-dusty-light);
+    color: var(--color-dusty-deep);
+  }
+
+  .detail-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .detail-value {
+    display: block;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--color-navy);
+  }
+
+  a.detail-value:hover {
+    color: var(--color-dusty-deep);
+  }
+
+  .link-arrow {
+    margin-top: 0.4rem;
+    font-size: 1rem;
+  }
+</style>

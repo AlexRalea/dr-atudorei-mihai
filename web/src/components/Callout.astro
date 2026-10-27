@@ -1,0 +1,50 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  tone?: 'info' | 'warning';
+  title?: string;
+}
+
+const { tone = 'info', title } = Astro.props;
+---
+
+<aside class:list={['callout', `callout-${tone}`]}>
+  <Icon name={tone === 'warning' ? 'circle-alert' : 'info'} size={22} />
+  <div>
+    {title && <p class="callout-title">{title}</p>}
+    <p><slot /></p>
+  </div>
+</aside>
+
+<style>
+  .callout {
+    display: flex;
+    gap: 0.9rem;
+    padding: 1.15rem 1.35rem;
+    border-radius: var(--radius);
+    background: var(--color-dusty-soft);
+    border: 1px solid var(--color-dusty-light);
+    font-size: 1.0625rem;
+  }
+
+  .callout :global(.icon) {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: var(--color-dusty-deep);
+  }
+
+  .callout-warning {
+    background: var(--color-accent-soft);
+    border-color: #ead2c3;
+  }
+
+  .callout-warning :global(.icon) {
+    color: var(--color-accent);
+  }
+
+  .callout-title {
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+  }
+</style>

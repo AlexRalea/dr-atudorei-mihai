@@ -1,0 +1,120 @@
+---
+import { getSettings } from '../lib/content';
+import { telHref } from '../lib/format';
+import { routes } from '../lib/routes';
+import Icon from './Icon.astro';
+
+interface Props {
+  title?: string;
+  text?: string;
+}
+
+const {
+  title = 'Vă supără mâna? Să vedem împreună ce se întâmplă.',
+  text = 'Programați o consultație. Vă explicăm pe înțeles ce aveți și ce opțiuni de tratament există.',
+} = Astro.props;
+
+const settings = await getSettings();
+const tel = telHref(settings.phone);
+---
+
+<section class="section-tight">
+  <div class="container">
+    <div class="cta-band" data-reveal>
+      <div class="cta-text">
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
+      <div class="cta-actions">
+        <a href={routes.appointment} class="btn btn-primary">
+          <Icon name="calendar-check" size={20} />
+          Programează o consultație
+        </a>
+        {
+          tel && (
+            <a href={tel} class="btn btn-ghost-light">
+              <Icon name="phone" size={20} />
+              {settings.phone}
+            </a>
+          )
+        }
+      </div>
+      <svg class="cta-shape" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1"></circle>
+        <circle cx="200" cy="200" r="110" fill="none" stroke="currentColor" stroke-width="1"></circle>
+        <circle cx="200" cy="200" r="60" fill="none" stroke="currentColor" stroke-width="1"></circle>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-band {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.4fr auto;
+    align-items: center;
+    gap: 2rem 3rem;
+    padding: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--color-navy) 0%, #34506a 100%);
+    color: #e6edf3;
+  }
+
+  .cta-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-text > * + * {
+    margin-top: 1rem;
+  }
+
+  h2 {
+    color: #fff;
+    max-width: 22ch;
+  }
+
+  p {
+    max-width: 46ch;
+    color: #c9d6e2;
+    font-size: var(--text-lg);
+  }
+
+  .cta-actions {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .btn-ghost-light {
+    --btn-bg: rgb(255 255 255 / 0.08);
+    --btn-fg: #fff;
+    --btn-border: rgb(255 255 255 / 0.25);
+  }
+
+  .btn-ghost-light:hover {
+    --btn-bg: rgb(255 255 255 / 0.14);
+  }
+
+  .cta-shape {
+    position: absolute;
+    right: -6rem;
+    bottom: -9rem;
+    width: 26rem;
+    color: rgb(157 184 205 / 0.25);
+    pointer-events: none;
+  }
+
+  @media (max-width: 860px) {
+    .cta-band {
+      grid-template-columns: 1fr;
+    }
+
+    .cta-actions {
+      justify-items: start;
+    }
+  }
+</style>

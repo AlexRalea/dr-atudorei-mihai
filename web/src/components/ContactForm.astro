@@ -1,0 +1,272 @@
+---
+import { routes } from '../lib/routes';
+import Icon from './Icon.astro';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+---
+
+<form class="contact-form" method="post" action="/api/contact" data-contact-form novalidate>
+  <div class="field-row">
+    <div class="field">
+      <label for="nume">Nume și prenume</label>
+      <input id="nume" name="nume" type="text" autocomplete="name" required minlength="3" maxlength="100" />
+    </div>
+    <div class="field">
+      <label for="telefon">Telefon</label>
+      <input
+        id="telefon"
+        name="telefon"
+        type="tel"
+        autocomplete="tel"
+        inputmode="tel"
+        required
+        pattern="[0-9 +().\-]{9,20}"
+        maxlength="20"
+      />
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="email">Email <span class="optional">(opțional)</span></label>
+    <input id="email" name="email" type="email" autocomplete="email" maxlength="120" />
+  </div>
+
+  <div class="field">
+    <label for="motiv">Motivul programării</label>
+    <select id="motiv" name="motiv">
+      <option>Consultație nouă</option>
+      <option>Control după tratament sau intervenție</option>
+      <option>A doua opinie</option>
+      <option>Altă întrebare</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="mesaj">Mesaj <span class="optional">(opțional)</span></label>
+    <textarea id="mesaj" name="mesaj" rows="4" maxlength="1000" aria-describedby="mesaj-ajutor"></textarea>
+    <p class="hint" id="mesaj-ajutor">
+      Câteva cuvinte despre ce vă supără și când vă putem suna. Nu este nevoie de detalii medicale: le discutăm la
+      consultație.
+    </p>
+  </div>
+
+  {/* Câmp capcană pentru roboți: oamenii nu îl văd și nu îl completează. */}
+  <div class="trap" aria-hidden="true">
+    <label for="website">Nu completați acest câmp</label>
+    <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <label class="consent">
+    <input type="checkbox" name="acord" value="da" required />
+    <span>
+      Sunt de acord ca datele mele să fie folosite pentru a fi contactat(ă) în vederea programării, conform
+      <a href={routes.page('politica-confidentialitate')}>politicii de confidențialitate</a>.
+    </span>
+  </label>
+
+  {turnstileSiteKey && <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-language="ro"></div>}
+
+  <p class="form-status" role="status" aria-live="polite" data-form-status></p>
+
+  <button type="submit" class="btn btn-primary submit">
+    <span class="submit-label">Trimite cererea</span>
+    <Icon name="arrow-right" size={20} />
+  </button>
+</form>
+
+{turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
+
+<style>
+  .contact-form {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  .optional {
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--color-line-strong);
+    border-radius: 14px;
+    background: #fff;
+    font-size: 1.0625rem;
+    transition:
+      border-color 200ms var(--ease),
+      box-shadow 200ms var(--ease);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 7.5rem;
+  }
+
+  select {
+    appearance: none;
+    padding-right: 3rem;
+    background: #fff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23557591' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      no-repeat right 1rem center;
+    cursor: pointer;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--color-dusty-deep);
+    box-shadow: 0 0 0 4px rgb(85 117 145 / 0.15);
+  }
+
+  .was-validated input:invalid,
+  .was-validated textarea:invalid {
+    border-color: #b4553a;
+  }
+
+  .hint {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .consent {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--color-text-muted);
+  }
+
+  .consent input {
+    width: 1.25rem;
+    min-height: 0;
+    height: 1.25rem;
+    margin-top: 0.2rem;
+    padding: 0;
+    accent-color: var(--color-dusty-deep);
+  }
+
+  .consent a {
+    color: var(--color-dusty-deep);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .form-status:empty {
+    display: none;
+  }
+
+  .form-status {
+    padding: 0.9rem 1.1rem;
+    border-radius: 14px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-strong);
+    font-weight: 600;
+  }
+
+  .submit {
+    justify-self: start;
+  }
+
+  .submit[aria-busy='true'] {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .field-row {
+      grid-template-columns: 1fr;
+    }
+
+    .submit {
+      justify-self: stretch;
+    }
+  }
+</style>
+
+<script>
+  import { routes } from '../lib/routes';
+
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  const status = form?.querySelector<HTMLElement>('[data-form-status]');
+  const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  const messages: Record<string, string> = {
+    valueMissing: 'Vă rugăm să completați câmpurile obligatorii.',
+    patternMismatch: 'Vă rugăm să verificați numărul de telefon.',
+    typeMismatch: 'Vă rugăm să verificați adresa de email.',
+    tooShort: 'Vă rugăm să scrieți numele complet.',
+  };
+
+  const firstError = (form: HTMLFormElement) => {
+    for (const element of Array.from(form.elements) as HTMLInputElement[]) {
+      if (!element.willValidate || element.validity.valid) continue;
+      const key = Object.keys(messages).find((name) => element.validity[name as keyof ValidityState]);
+      if (element.type === 'checkbox') return { element, message: 'Pentru a trimite cererea, este nevoie de acordul dumneavoastră.' };
+      return { element, message: key ? messages[key] : 'Vă rugăm să verificați datele introduse.' };
+    }
+    return null;
+  };
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status || !submit) return;
+
+    form.classList.add('was-validated');
+    const error = firstError(form);
+    if (error) {
+      status.textContent = error.message;
+      error.element.focus();
+      return;
+    }
+
+    status.textContent = '';
+    submit.setAttribute('aria-busy', 'true');
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      });
+      const result = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!response.ok || !result.ok) throw new Error(result.error);
+      window.location.href = routes.thankYou;
+    } catch (error) {
+      status.textContent =
+        (error instanceof Error && error.message) ||
+        'Cererea nu a putut fi trimisă. Vă rugăm să încercați din nou sau să ne sunați.';
+      submit.removeAttribute('aria-busy');
+    }
+  });
+</script>

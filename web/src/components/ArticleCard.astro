@@ -1,0 +1,134 @@
+---
+import { Image } from 'astro:assets';
+import { formatDate } from '../lib/format';
+import { routes } from '../lib/routes';
+import type { Article } from '../lib/types';
+import Icon from './Icon.astro';
+
+interface Props {
+  article: Article;
+  delay?: number;
+}
+
+const { article, delay = 0 } = Astro.props;
+---
+
+<a href={routes.article(article.slug)} class="article-card" data-reveal style={`--reveal-delay: ${delay}ms`}>
+  <div class="article-cover">
+    {
+      article.cover ? (
+        <Image
+          src={article.cover.url}
+          alt={article.cover.alt}
+          width={article.cover.width}
+          height={article.cover.height}
+          widths={[400, 700]}
+          sizes="(max-width: 700px) 100vw, 380px"
+        />
+      ) : (
+        <span class="cover-placeholder" aria-hidden="true">
+          <Icon name="hand" size={56} strokeWidth={1} />
+        </span>
+      )
+    }
+  </div>
+  <div class="article-body">
+    <p class="article-meta">
+      {article.category && <span class="article-category">{article.category}</span>}
+      <time datetime={article.publishedAt}>{formatDate(article.publishedAt)}</time>
+    </p>
+    <h3>{article.title}</h3>
+    <p class="article-excerpt">{article.excerpt}</p>
+    <span class="link-arrow">
+      Citește articolul
+      <Icon name="arrow-right" size={18} />
+    </span>
+  </div>
+</a>
+
+<style>
+  .article-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    transition:
+      transform 320ms var(--ease),
+      box-shadow 320ms var(--ease);
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+  }
+
+  .article-cover {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--color-dusty-soft);
+  }
+
+  .article-cover :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms var(--ease);
+  }
+
+  .article-card:hover .article-cover :global(img) {
+    transform: scale(1.03);
+  }
+
+  .cover-placeholder {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: var(--color-dusty);
+    background:
+      radial-gradient(circle at 20% 20%, var(--color-sand) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, var(--color-dusty-light) 0, transparent 50%),
+      var(--color-dusty-soft);
+  }
+
+  .article-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.6rem 1.75rem 1.9rem;
+  }
+
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.9rem;
+    align-items: center;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .article-category {
+    padding: 0.15rem 0.65rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-strong);
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: 1.375rem;
+  }
+
+  .article-excerpt {
+    color: var(--color-text-muted);
+    font-size: 1.0625rem;
+  }
+
+  .link-arrow {
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+</style>

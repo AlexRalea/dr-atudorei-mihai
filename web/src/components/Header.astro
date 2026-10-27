@@ -1,0 +1,339 @@
+---
+import { getSettings } from '../lib/content';
+import { telHref } from '../lib/format';
+import { routes } from '../lib/routes';
+import Icon from './Icon.astro';
+
+const settings = await getSettings();
+const tel = telHref(settings.phone);
+const path = Astro.url.pathname;
+
+const nav = [
+  { href: routes.about, label: 'Despre' },
+  { href: routes.services, label: 'Servicii' },
+  { href: routes.conditions, label: 'Afecțiuni' },
+  { href: routes.articles, label: 'Articole' },
+  { href: routes.contact, label: 'Contact' },
+];
+
+const isCurrent = (href: string) => path === href || path.startsWith(href);
+---
+
+<header class="site-header" data-header>
+  <div class="container header-inner">
+    <a href="/" class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <Icon name="hand" size={22} strokeWidth={1.6} />
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">{settings.siteName}</span>
+        <span class="brand-specialty">{settings.specialty}</span>
+      </span>
+    </a>
+
+    <nav class="main-nav" id="main-nav" aria-label="Navigare principală" data-nav>
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="nav-extra">
+        {
+          tel && (
+            <a href={tel} class="btn btn-secondary">
+              <Icon name="phone" size={18} />
+              {settings.phone}
+            </a>
+          )
+        }
+        <a href={routes.appointment} class="btn btn-primary">
+          <Icon name="calendar-check" size={18} />
+          Programează o consultație
+        </a>
+      </div>
+    </nav>
+
+    <div class="header-actions">
+      {
+        tel && (
+          <a href={tel} class="header-phone">
+            <Icon name="phone" size={18} />
+            <span>{settings.phone}</span>
+          </a>
+        )
+      }
+      <a href={routes.appointment} class="btn btn-primary btn-sm header-cta">Programează-te</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav" data-nav-toggle>
+        <span class="visually-hidden">Deschide meniul</span>
+        <span class="nav-toggle-icon nav-toggle-open"><Icon name="menu" size={24} /></span>
+        <span class="nav-toggle-icon nav-toggle-close"><Icon name="x" size={24} /></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition:
+      border-color 300ms var(--ease),
+      box-shadow 300ms var(--ease);
+  }
+
+  .site-header.is-scrolled {
+    border-bottom-color: var(--color-line);
+    box-shadow: 0 8px 30px -24px rgb(40 61 82 / 0.4);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    min-height: var(--header-h);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-right: auto;
+  }
+
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 14px;
+    background: var(--color-dusty-light);
+    color: var(--color-dusty-deep);
+    transition: transform 400ms var(--ease);
+  }
+
+  .brand:hover .brand-mark {
+    transform: rotate(-6deg);
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .brand-name {
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 1.25rem;
+    font-weight: 520;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-specialty {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-dusty-deep);
+  }
+
+  .main-nav ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+  }
+
+  .main-nav a:not(.btn) {
+    position: relative;
+    display: block;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-pill);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    transition:
+      color 200ms var(--ease),
+      background-color 200ms var(--ease);
+  }
+
+  .main-nav a:not(.btn):hover {
+    color: var(--color-navy);
+    background: var(--color-sand-soft);
+  }
+
+  .main-nav a[aria-current='page'] {
+    color: var(--color-navy);
+    background: var(--color-dusty-soft);
+  }
+
+  .nav-extra {
+    display: none;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .header-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 600;
+    color: var(--color-navy);
+    white-space: nowrap;
+  }
+
+  .header-phone:hover {
+    color: var(--color-dusty-deep);
+  }
+
+  .nav-toggle {
+    display: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 14px;
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+
+  .nav-toggle-close {
+    display: none;
+  }
+
+  .nav-toggle[aria-expanded='true'] .nav-toggle-open {
+    display: none;
+  }
+
+  .nav-toggle[aria-expanded='true'] .nav-toggle-close {
+    display: block;
+  }
+
+  @media (max-width: 1180px) {
+    .header-phone {
+      display: none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .header-inner {
+      gap: 1rem;
+    }
+
+    /* Fără JavaScript, meniul rămâne vizibil sub logo. */
+    :global(html:not(.js)) .header-inner {
+      flex-wrap: wrap;
+      padding-block: 0.75rem;
+    }
+
+    :global(html:not(.js)) .main-nav {
+      order: 3;
+      width: 100%;
+    }
+
+    :global(html:not(.js)) .main-nav ul {
+      flex-wrap: wrap;
+    }
+
+    :global(html.js) .nav-toggle {
+      display: grid;
+    }
+
+    :global(html.js) .main-nav {
+      position: absolute;
+      inset: calc(var(--header-h) - 1px) 0 auto;
+      padding: 1rem var(--gutter) 1.5rem;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-line);
+      box-shadow: 0 30px 40px -30px rgb(40 61 82 / 0.35);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition:
+        opacity 260ms var(--ease),
+        transform 260ms var(--ease),
+        visibility 0s 260ms;
+    }
+
+    :global(html.js) .main-nav.is-open {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition:
+        opacity 260ms var(--ease),
+        transform 260ms var(--ease);
+    }
+
+    :global(html.js) .main-nav ul {
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    :global(html.js) .main-nav a:not(.btn) {
+      padding: 0.85rem 1rem;
+      font-size: 1.125rem;
+      border-radius: var(--radius-sm);
+    }
+
+    :global(html.js) .nav-extra {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-line);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .header-cta {
+      display: none;
+    }
+
+    .brand-name {
+      font-size: 1.125rem;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+
+  const setOpen = (open: boolean) => {
+    if (!nav || !toggle) return;
+    nav.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.querySelector('.visually-hidden')!.textContent = open ? 'Închide meniul' : 'Deschide meniul';
+  };
+
+  toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+
+  nav?.addEventListener('click', (event) => {
+    if ((event.target as HTMLElement).closest('a')) setOpen(false);
+  });
+
+  const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 8);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+</script>

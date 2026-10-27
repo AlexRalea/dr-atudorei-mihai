@@ -1,0 +1,59 @@
+---
+import { Image } from 'astro:assets';
+import { groupPortableText } from '../lib/portable-text';
+import type { PortableTextContent } from '../lib/types';
+import Callout from './Callout.astro';
+
+interface Props {
+  value: PortableTextContent;
+  class?: string;
+}
+
+const { value, class: className } = Astro.props;
+const groups = groupPortableText(value);
+---
+
+<div class:list={['prose', className]}>
+  {
+    groups.map((group) => {
+      if (group.kind === 'html') return <Fragment set:html={group.html} />;
+      if (group.kind === 'callout')
+        return (
+          <Callout tone={group.node.tone} title={group.node.title}>
+            {group.node.text}
+          </Callout>
+        );
+      const { node } = group;
+      return (
+        <figure class="pt-figure">
+          <Image
+            src={node.url!}
+            alt={node.alt ?? ''}
+            width={node.width ?? 1600}
+            height={node.height ?? 1000}
+            widths={[480, 800, 1200]}
+            sizes="(max-width: 800px) 100vw, 760px"
+          />
+          {node.caption && <figcaption>{node.caption}</figcaption>}
+        </figure>
+      );
+    })
+  }
+</div>
+
+<style>
+  .pt-figure {
+    margin-inline: 0;
+  }
+
+  .pt-figure :global(img) {
+    width: 100%;
+    border-radius: var(--radius);
+  }
+
+  .pt-figure figcaption {
+    margin-top: 0.6rem;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+import { routes } from '../lib/routes';
+import type { Service } from '../lib/types';
+import Icon from './Icon.astro';
+
+interface Props {
+  service: Service;
+  delay?: number;
+}
+
+const { service, delay = 0 } = Astro.props;
+---
+
+<a href={routes.service(service.slug)} class="service-card" data-reveal style={`--reveal-delay: ${delay}ms`}>
+  <span class="service-icon" aria-hidden="true">
+    <Icon name={service.icon ?? 'hand'} size={26} strokeWidth={1.5} />
+  </span>
+  <h3>{service.title}</h3>
+  <p>{service.summary}</p>
+  <span class="link-arrow">
+    Află mai multe
+    <Icon name="arrow-right" size={18} />
+  </span>
+</a>
+
+<style>
+  .service-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    height: 100%;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    transition:
+      transform 320ms var(--ease),
+      box-shadow 320ms var(--ease),
+      border-color 320ms var(--ease);
+  }
+
+  .service-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-dusty);
+    box-shadow: var(--shadow);
+  }
+
+  .service-icon {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 18px;
+    background: var(--color-dusty-light);
+    color: var(--color-dusty-deep);
+    transition:
+      background-color 320ms var(--ease),
+      color 320ms var(--ease);
+  }
+
+  .service-card:hover .service-icon {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  h3 {
+    font-size: 1.4375rem;
+  }
+
+  p {
+    color: var(--color-text-muted);
+    font-size: 1.0625rem;
+  }
+
+  .link-arrow {
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+
+  .service-card:hover .link-arrow {
+    gap: 0.7rem;
+    color: var(--color-navy);
+  }
+</style>
