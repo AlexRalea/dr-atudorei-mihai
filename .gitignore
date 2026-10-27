@@ -1,0 +1,33 @@
+# Documentație internă
+docs/
+
+# Dependențe
+node_modules/
+
+# Build
+dist/
+.astro/
+
+# Sanity
+.sanity/
+
+# Variabile de mediu
+.env
+.env.*
+!.env.example
+
+# Cloudflare
+.wrangler/
+.dev.vars
+
+# Loguri
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# OS / editoare
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
