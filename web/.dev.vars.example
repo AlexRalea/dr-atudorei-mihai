@@ -1,0 +1,7 @@
+# Copiați în .dev.vars pentru testarea locală a formularului (npm run pages:dev).
+# În producție, aceleași variabile se setează în Cloudflare Pages → Settings → Variables and Secrets.
+BREVO_API_KEY=
+CONTACT_TO_EMAIL=
+CONTACT_FROM_EMAIL=
+CONTACT_FROM_NAME=Site programări
+TURNSTILE_SECRET_KEY=

@@ -5,7 +5,7 @@ import Icon from './Icon.astro';
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 
-<form class="contact-form" method="post" action="/api/contact" data-contact-form novalidate>
+<form class="contact-form" method="post" action="/api/contact" data-contact-form>
   <div class="field-row">
     <div class="field">
       <label for="nume">Nume și prenume</label>
@@ -227,6 +227,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
     typeMismatch: 'Vă rugăm să verificați adresa de email.',
     tooShort: 'Vă rugăm să scrieți numele complet.',
   };
+
+  // Cu JavaScript validăm noi, cu mesaje în română; fără JavaScript rămâne validarea browserului.
+  if (form) form.noValidate = true;
+
+  // Fără JavaScript, serverul redirecționează aici cu ?eroare=1 când trimiterea nu reușește.
+  if (status && new URLSearchParams(window.location.search).has('eroare')) {
+    status.textContent = 'Cererea nu a putut fi trimisă. Vă rugăm să încercați din nou sau să ne sunați.';
+  }
 
   const firstError = (form: HTMLFormElement) => {
     for (const element of Array.from(form.elements) as HTMLInputElement[]) {
