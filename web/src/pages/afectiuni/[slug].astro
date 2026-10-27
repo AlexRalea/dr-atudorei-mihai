@@ -1,0 +1,212 @@
+---
+import AppointmentCard from '../../components/AppointmentCard.astro';
+import ConditionCard from '../../components/ConditionCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import FaqList from '../../components/FaqList.astro';
+import Icon from '../../components/Icon.astro';
+import MedicalNote from '../../components/MedicalNote.astro';
+import PageHero from '../../components/PageHero.astro';
+import PortableText from '../../components/PortableText.astro';
+import ServiceCard from '../../components/ServiceCard.astro';
+import Toc from '../../components/Toc.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getConditions, getServices, pickBySlug } from '../../lib/content';
+import { routes } from '../../lib/routes';
+import { breadcrumbSchema, conditionSchema, faqSchema } from '../../lib/schema';
+import type { Condition } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const conditions = await getConditions();
+  return conditions.map((condition) => ({ params: { slug: condition.slug }, props: { condition } }));
+}
+
+interface Props {
+  condition: Condition;
+}
+
+const { condition } = Astro.props;
+const [conditions, services] = await Promise.all([getConditions(), getServices()]);
+const relatedServices = pickBySlug(services, condition.relatedServices);
+const otherConditions = conditions.filter((item) => item.slug !== condition.slug).slice(0, 3);
+
+const path = routes.condition(condition.slug);
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: 'Afecțiuni', href: routes.conditions },
+  { name: condition.title, href: path },
+];
+
+const sections = [
+  { id: 'ce-este', text: 'Ce este', show: condition.overview.length > 0 },
+  { id: 'simptome', text: 'Simptome', show: condition.symptoms.length > 0 },
+  { id: 'cauze', text: 'Cauze și factori de risc', show: condition.causes.length > 0 },
+  { id: 'cand-mergeti-la-medic', text: 'Când să mergeți la medic', show: condition.whenToSee.length > 0 },
+  { id: 'tratament', text: 'Tratament', show: condition.treatment.length > 0 },
+  { id: 'recuperare', text: 'Recuperare', show: condition.recovery.length > 0 },
+  { id: 'intrebari', text: 'Întrebări frecvente', show: condition.faqs.length > 0 },
+].filter((section) => section.show);
+
+const site = Astro.site!;
+---
+
+<BaseLayout
+  title={condition.seo?.title || condition.title}
+  description={condition.seo?.description || condition.summary}
+  image={condition.seo?.image}
+  noindex={condition.seo?.noindex}
+  jsonLd={[
+    conditionSchema(site, condition, path),
+    breadcrumbSchema(site, breadcrumbs),
+    faqSchema(condition.faqs),
+  ]}
+>
+  <PageHero breadcrumbs={breadcrumbs} eyebrow="Afecțiune" title={condition.title} intro={condition.summary}>
+    {condition.aka && <p class="aka">Cunoscută și ca: {condition.aka}</p>}
+  </PageHero>
+
+  <section class="section">
+    <div class="container detail-grid">
+      <article class="detail-main">
+        {
+          condition.overview.length > 0 && (
+            <section class="detail-section" id="ce-este">
+              <h2>Ce este</h2>
+              <PortableText value={condition.overview} />
+            </section>
+          )
+        }
+
+        {
+          condition.symptoms.length > 0 && (
+            <section class="detail-section" id="simptome">
+              <h2>Simptome</h2>
+              <ul class="check-list">
+                {condition.symptoms.map((symptom) => (
+                  <li>
+                    <Icon name="check" size={20} />
+                    <span>{symptom}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          condition.causes.length > 0 && (
+            <section class="detail-section" id="cauze">
+              <h2>Cauze și factori de risc</h2>
+              <ul class="check-list is-compact">
+                {condition.causes.map((cause) => (
+                  <li>
+                    <Icon name="info" size={20} />
+                    <span>{cause}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          condition.whenToSee.length > 0 && (
+            <section class="detail-section highlight-box" id="cand-mergeti-la-medic">
+              <h2>
+                <Icon name="circle-alert" size={26} />
+                Când să mergeți la medic
+              </h2>
+              <ul class="check-list is-compact">
+                {condition.whenToSee.map((item) => (
+                  <li>
+                    <Icon name="arrow-right" size={20} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          condition.treatment.length > 0 && (
+            <section class="detail-section" id="tratament">
+              <h2>Tratament</h2>
+              <PortableText value={condition.treatment} />
+            </section>
+          )
+        }
+
+        {
+          condition.recovery.length > 0 && (
+            <section class="detail-section" id="recuperare">
+              <h2>Recuperare</h2>
+              <PortableText value={condition.recovery} />
+            </section>
+          )
+        }
+
+        {
+          condition.faqs.length > 0 && (
+            <section class="detail-section" id="intrebari">
+              <h2>Întrebări frecvente</h2>
+              <FaqList faqs={condition.faqs} />
+            </section>
+          )
+        }
+
+        <MedicalNote reviewedAt={condition.reviewedAt} />
+      </article>
+
+      <aside class="detail-aside">
+        <Toc items={sections} />
+        <AppointmentCard />
+      </aside>
+    </div>
+  </section>
+
+  {
+    relatedServices.length > 0 && (
+      <section class="section-tight section-sand">
+        <div class="container">
+          <h2 class="related-title">Servicii pentru această afecțiune</h2>
+          <ul class="card-grid">
+            {relatedServices.map((service, index) => (
+              <li>
+                <ServiceCard service={service} delay={index * 60} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section-tight">
+    <div class="container">
+      <h2 class="related-title">Alte afecțiuni</h2>
+      <ul class="card-grid">
+        {
+          otherConditions.map((item, index) => (
+            <li>
+              <ConditionCard condition={item} delay={index * 60} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .aka {
+    font-weight: 600;
+    color: var(--color-dusty-deep);
+  }
+
+  .related-title {
+    margin-bottom: 2rem;
+    font-size: var(--text-xl);
+  }
+</style>

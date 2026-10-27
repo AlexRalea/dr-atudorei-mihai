@@ -1,0 +1,148 @@
+---
+import AppointmentCard from '../../components/AppointmentCard.astro';
+import ConditionCard from '../../components/ConditionCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import FaqList from '../../components/FaqList.astro';
+import Icon from '../../components/Icon.astro';
+import MedicalNote from '../../components/MedicalNote.astro';
+import PageHero from '../../components/PageHero.astro';
+import PortableText from '../../components/PortableText.astro';
+import Steps from '../../components/Steps.astro';
+import Toc from '../../components/Toc.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getConditions, getServices, pickBySlug } from '../../lib/content';
+import { routes } from '../../lib/routes';
+import { breadcrumbSchema, faqSchema, serviceSchema } from '../../lib/schema';
+import type { Service } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const services = await getServices();
+  return services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props;
+const conditions = await getConditions();
+const relatedConditions = pickBySlug(conditions, service.relatedConditions);
+
+const path = routes.service(service.slug);
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: 'Servicii', href: routes.services },
+  { name: service.title, href: path },
+];
+
+const sections = [
+  { id: 'despre', text: 'Pe scurt', show: service.overview.length > 0 },
+  { id: 'cand-este-recomandat', text: 'Când este recomandat', show: service.indications.length > 0 },
+  { id: 'cum-decurge', text: 'Cum decurge', show: service.steps.length > 0 },
+  { id: 'recuperare', text: 'Recuperare', show: service.recovery.length > 0 },
+  { id: 'intrebari', text: 'Întrebări frecvente', show: service.faqs.length > 0 },
+].filter((section) => section.show);
+
+const site = Astro.site!;
+---
+
+<BaseLayout
+  title={service.seo?.title || service.title}
+  description={service.seo?.description || service.summary}
+  image={service.seo?.image}
+  noindex={service.seo?.noindex}
+  jsonLd={[serviceSchema(site, service, path), breadcrumbSchema(site, breadcrumbs), faqSchema(service.faqs)]}
+>
+  <PageHero breadcrumbs={breadcrumbs} eyebrow="Serviciu" title={service.title} intro={service.summary} />
+
+  <section class="section">
+    <div class="container detail-grid">
+      <article class="detail-main">
+        {
+          service.overview.length > 0 && (
+            <section class="detail-section" id="despre">
+              <h2>Pe scurt</h2>
+              <PortableText value={service.overview} />
+            </section>
+          )
+        }
+
+        {
+          service.indications.length > 0 && (
+            <section class="detail-section" id="cand-este-recomandat">
+              <h2>Când este recomandat</h2>
+              <ul class="check-list">
+                {service.indications.map((item) => (
+                  <li>
+                    <Icon name="check" size={20} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          service.steps.length > 0 && (
+            <section class="detail-section" id="cum-decurge">
+              <h2>Cum decurge</h2>
+              <Steps steps={service.steps} layout="column" />
+            </section>
+          )
+        }
+
+        {
+          service.recovery.length > 0 && (
+            <section class="detail-section" id="recuperare">
+              <h2>Recuperare</h2>
+              <PortableText value={service.recovery} />
+            </section>
+          )
+        }
+
+        {
+          service.faqs.length > 0 && (
+            <section class="detail-section" id="intrebari">
+              <h2>Întrebări frecvente</h2>
+              <FaqList faqs={service.faqs} />
+            </section>
+          )
+        }
+
+        <MedicalNote />
+      </article>
+
+      <aside class="detail-aside">
+        <Toc items={sections} />
+        <AppointmentCard />
+      </aside>
+    </div>
+  </section>
+
+  {
+    relatedConditions.length > 0 && (
+      <section class="section-tight section-sand">
+        <div class="container">
+          <h2 class="related-title">Afecțiuni tratate</h2>
+          <ul class="card-grid">
+            {relatedConditions.map((condition, index) => (
+              <li>
+                <ConditionCard condition={condition} delay={(index % 3) * 60} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .related-title {
+    margin-bottom: 2rem;
+    font-size: var(--text-xl);
+  }
+</style>

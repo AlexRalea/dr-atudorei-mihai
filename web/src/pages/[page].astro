@@ -1,0 +1,48 @@
+---
+import PageHero from '../components/PageHero.astro';
+import PortableText from '../components/PortableText.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPages } from '../lib/content';
+import { RESERVED_PAGE_SLUGS, routes } from '../lib/routes';
+import { breadcrumbSchema } from '../lib/schema';
+import type { Page } from '../lib/types';
+
+// Pagini simple create din CMS (informații pentru pacienți, politici etc.), publicate la /adresa/.
+export async function getStaticPaths() {
+  const pages = await getPages();
+  return pages
+    .filter((page) => !RESERVED_PAGE_SLUGS.includes(page.slug))
+    .map((page) => ({ params: { page: page.slug }, props: { page } }));
+}
+
+interface Props {
+  page: Page;
+}
+
+const { page } = Astro.props;
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: page.title, href: routes.page(page.slug) },
+];
+---
+
+<BaseLayout
+  title={page.seo?.title || page.title}
+  description={page.seo?.description || page.intro}
+  image={page.seo?.image}
+  noindex={page.seo?.noindex}
+  jsonLd={[breadcrumbSchema(Astro.site!, breadcrumbs)]}
+>
+  <PageHero breadcrumbs={breadcrumbs} title={page.title} intro={page.intro} narrow />
+  <section class="section">
+    <div class="container container-narrow">
+      <PortableText value={page.body} class="page-body" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .container :global(.page-body) {
+    max-width: none;
+  }
+</style>

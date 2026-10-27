@@ -1,0 +1,61 @@
+---
+import Icon from '../../components/Icon.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSettings } from '../../lib/content';
+import { telHref } from '../../lib/format';
+import { routes } from '../../lib/routes';
+
+const settings = await getSettings();
+const tel = telHref(settings.phone);
+---
+
+<BaseLayout title="Mulțumim" noindex>
+  <section class="section">
+    <div class="container container-narrow thanks">
+      <span class="thanks-icon"><Icon name="check" size={36} strokeWidth={2} /></span>
+      <h1>Mulțumim, am primit cererea</h1>
+      <p class="lead">
+        Vă contactăm în cel mai scurt timp pentru a stabili ziua și ora consultației.
+        {tel && <>Dacă e ceva urgent, ne puteți suna la <a href={tel}>{settings.phone}</a>.</>}
+      </p>
+      <div class="thanks-actions">
+        <a href={routes.home} class="btn btn-dark">Înapoi la pagina principală</a>
+        <a href={routes.articles} class="btn btn-secondary">Citește articolele</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .thanks {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .thanks-icon {
+    display: grid;
+    place-items: center;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    background: var(--color-dusty-light);
+    color: var(--color-dusty-deep);
+  }
+
+  .lead a {
+    color: var(--color-dusty-deep);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .thanks-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+</style>

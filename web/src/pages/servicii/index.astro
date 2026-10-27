@@ -1,0 +1,44 @@
+---
+import CtaBand from '../../components/CtaBand.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceCard from '../../components/ServiceCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getServices } from '../../lib/content';
+import { routes } from '../../lib/routes';
+import { breadcrumbSchema } from '../../lib/schema';
+
+const services = await getServices();
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: 'Servicii', href: routes.services },
+];
+---
+
+<BaseLayout
+  title="Servicii de chirurgia mâinii"
+  description="Consultații, tratament fără operație și intervenții chirurgicale pentru afecțiunile mâinii, pumnului și degetelor."
+  jsonLd={[breadcrumbSchema(Astro.site!, breadcrumbs)]}
+>
+  <PageHero
+    breadcrumbs={breadcrumbs}
+    eyebrow="Servicii"
+    title="Cum vă putem ajuta"
+    intro="De la prima consultație până la recuperare. Pentru fiecare serviciu găsiți când este recomandat, cum decurge și la ce să vă așteptați după."
+  />
+
+  <section class="section">
+    <div class="container">
+      <ul class="card-grid">
+        {
+          services.map((service, index) => (
+            <li>
+              <ServiceCard service={service} delay={(index % 3) * 60} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>

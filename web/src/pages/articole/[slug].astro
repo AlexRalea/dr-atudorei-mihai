@@ -1,0 +1,229 @@
+---
+import { Image } from 'astro:assets';
+import AppointmentCard from '../../components/AppointmentCard.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import MedicalNote from '../../components/MedicalNote.astro';
+import PageHero from '../../components/PageHero.astro';
+import PortableText from '../../components/PortableText.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getArticles, getConditions, getDoctor, pickBySlug } from '../../lib/content';
+import { formatDate, readingMinutes } from '../../lib/format';
+import { toPlainText } from '../../lib/portable-text';
+import { routes } from '../../lib/routes';
+import { articleSchema, breadcrumbSchema } from '../../lib/schema';
+import type { Article } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((article) => ({ params: { slug: article.slug }, props: { article } }));
+}
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const [articles, conditions, doctor] = await Promise.all([getArticles(), getConditions(), getDoctor()]);
+const relatedConditions = pickBySlug(conditions, article.relatedConditions);
+const moreArticles = articles.filter((item) => item.slug !== article.slug).slice(0, 2);
+const minutes = readingMinutes(toPlainText(article.body));
+
+const path = routes.article(article.slug);
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: 'Articole', href: routes.articles },
+  { name: article.title, href: path },
+];
+const site = Astro.site!;
+---
+
+<BaseLayout
+  title={article.seo?.title || article.title}
+  description={article.seo?.description || article.excerpt}
+  image={article.seo?.image ?? article.cover}
+  noindex={article.seo?.noindex}
+  type="article"
+  jsonLd={[articleSchema(site, article, doctor, path), breadcrumbSchema(site, breadcrumbs)]}
+>
+  <PageHero breadcrumbs={breadcrumbs} eyebrow={article.category} title={article.title} intro={article.excerpt}>
+    <p class="article-meta">
+      <span><Icon name="user-round" size={18} /> {doctor.name}</span>
+      <span><Icon name="calendar-check" size={18} /> <time datetime={article.publishedAt}>{formatDate(article.publishedAt)}</time></span>
+      <span><Icon name="clock" size={18} /> {minutes} min de citit</span>
+    </p>
+  </PageHero>
+
+  <section class="section">
+    <div class="container detail-grid">
+      <article class="detail-main">
+        {
+          article.cover && (
+            <Image
+              class="article-cover"
+              src={article.cover.url}
+              alt={article.cover.alt}
+              width={article.cover.width}
+              height={article.cover.height}
+              widths={[600, 900, 1300]}
+              sizes="(max-width: 1020px) 100vw, 760px"
+              loading="eager"
+            />
+          )
+        }
+        <PortableText value={article.body} class="article-body" />
+
+        <div class="author-box">
+          <span class="author-icon"><Icon name="user-round" size={24} /></span>
+          <div>
+            <p class="author-name">{doctor.name}</p>
+            <p class="muted">{doctor.role} · {doctor.specialty}</p>
+            <a href={routes.about} class="link-arrow">
+              Despre medic
+              <Icon name="arrow-right" size={18} />
+            </a>
+          </div>
+        </div>
+
+        <MedicalNote reviewedAt={article.reviewedAt} />
+      </article>
+
+      <aside class="detail-aside">
+        <AppointmentCard />
+        {
+          relatedConditions.length > 0 && (
+            <div class="aside-related">
+              <p class="aside-title">Afecțiuni menționate</p>
+              <ul>
+                {relatedConditions.map((condition) => (
+                  <li>
+                    <a href={routes.condition(condition.slug)}>
+                      {condition.title}
+                      <Icon name="arrow-right" size={16} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </aside>
+    </div>
+  </section>
+
+  {
+    moreArticles.length > 0 && (
+      <section class="section-tight section-sand">
+        <div class="container">
+          <h2 class="related-title">Citiți și</h2>
+          <ul class="card-grid">
+            {moreArticles.map((item, index) => (
+              <li>
+                <ArticleCard article={item} delay={index * 60} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+  }
+
+  .article-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .article-meta :global(.icon) {
+    color: var(--color-dusty-deep);
+  }
+
+  .detail-main :global(.article-cover) {
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  .detail-main :global(.article-body) {
+    font-size: 1.1875rem;
+  }
+
+  .author-box {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-sand-soft);
+    border: 1px solid var(--color-line);
+  }
+
+  .author-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--color-dusty-light);
+    color: var(--color-dusty-deep);
+  }
+
+  .author-name {
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 1.25rem;
+  }
+
+  .author-box .link-arrow {
+    margin-top: 0.5rem;
+  }
+
+  .aside-title {
+    margin-bottom: 0.75rem;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .aside-related ul {
+    display: grid;
+    gap: 0.5rem;
+    list-style: none;
+  }
+
+  .aside-related a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    font-weight: 600;
+    transition: border-color 200ms var(--ease);
+  }
+
+  .aside-related a:hover {
+    border-color: var(--color-dusty);
+  }
+
+  .related-title {
+    margin-bottom: 2rem;
+    font-size: var(--text-xl);
+  }
+</style>

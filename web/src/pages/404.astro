@@ -1,0 +1,55 @@
+---
+import Icon from '../components/Icon.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { routes } from '../lib/routes';
+
+const links = [
+  { href: routes.conditions, label: 'Afecțiuni tratate' },
+  { href: routes.services, label: 'Servicii' },
+  { href: routes.articles, label: 'Articole' },
+  { href: routes.contact, label: 'Contact și programări' },
+];
+---
+
+<BaseLayout title="Pagina nu a fost găsită" noindex>
+  <section class="section">
+    <div class="container container-narrow not-found">
+      <p class="code">404</p>
+      <h1>Pagina nu a fost găsită</h1>
+      <p class="lead">Este posibil ca adresa să fi fost scrisă greșit sau ca pagina să fi fost mutată.</p>
+      <a href={routes.home} class="btn btn-dark">
+        <Icon name="arrow-left" size={18} />
+        Înapoi la pagina principală
+      </a>
+      <ul>
+        {links.map((link) => <li><a href={link.href} class="link-arrow">{link.label}<Icon name="arrow-right" size={16} /></a></li>)}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .code {
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-size: clamp(4rem, 3rem + 5vw, 7rem);
+    line-height: 1;
+    color: var(--color-dusty);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 1.75rem;
+    margin-top: 1.5rem;
+    list-style: none;
+  }
+</style>

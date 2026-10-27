@@ -1,0 +1,66 @@
+---
+import Callout from '../../components/Callout.astro';
+import ConditionCard from '../../components/ConditionCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import PageHero from '../../components/PageHero.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getConditions } from '../../lib/content';
+import { routes } from '../../lib/routes';
+import { breadcrumbSchema } from '../../lib/schema';
+
+const conditions = await getConditions();
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: 'Afecțiuni', href: routes.conditions },
+];
+---
+
+<BaseLayout
+  title="Afecțiuni ale mâinii tratate"
+  description="Afecțiunile mâinii, pumnului și degetelor explicate pe înțeles: simptome, cauze, când să mergeți la medic și opțiuni de tratament."
+  jsonLd={[breadcrumbSchema(Astro.site!, breadcrumbs)]}
+>
+  <PageHero
+    breadcrumbs={breadcrumbs}
+    eyebrow="Afecțiuni"
+    title="Afecțiuni ale mâinii și ale pumnului"
+    intro="Pentru fiecare afecțiune găsiți simptomele, cauzele, momentul în care e bine să mergeți la medic și opțiunile de tratament."
+  />
+
+  <section class="section">
+    <div class="container">
+      <ul class="card-grid">
+        {
+          conditions.map((condition, index) => (
+            <li>
+              <ConditionCard condition={condition} delay={(index % 3) * 60} />
+            </li>
+          ))
+        }
+      </ul>
+      <div class="not-sure" data-reveal>
+        <Callout title="Nu știți exact ce aveți?">
+          Nu e nevoie să vă puneți singur diagnosticul. Descrieți-ne pe scurt ce simțiți, iar la consultație vom afla
+          împreună cauza.
+        </Callout>
+        <a href={routes.appointment} class="btn btn-primary">Programează o consultație</a>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .not-sure {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 2rem;
+    margin-top: 3rem;
+  }
+
+  .not-sure :global(.callout) {
+    flex: 1 1 30rem;
+  }
+</style>

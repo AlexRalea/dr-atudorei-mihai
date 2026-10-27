@@ -1,0 +1,249 @@
+---
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import Portrait from '../components/Portrait.astro';
+import PortableText from '../components/PortableText.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getConditions, getDoctor, getSettings } from '../lib/content';
+import { routes } from '../lib/routes';
+import { breadcrumbSchema, physicianSchema } from '../lib/schema';
+
+const [settings, doctor, conditions] = await Promise.all([getSettings(), getDoctor(), getConditions()]);
+const breadcrumbs = [
+  { name: 'Acasă', href: routes.home },
+  { name: 'Despre medic', href: routes.about },
+];
+const site = Astro.site!;
+---
+
+<BaseLayout
+  title={`Despre ${doctor.name}`}
+  description={`${doctor.name}, ${doctor.role.toLowerCase()}, ${doctor.specialty.toLowerCase()}. Formare, experiență și arii de interes.`}
+  image={doctor.portrait}
+  jsonLd={[
+    physicianSchema(
+      site,
+      settings,
+      doctor,
+      conditions.map((condition) => condition.title),
+    ),
+    breadcrumbSchema(site, breadcrumbs),
+  ]}
+>
+  <section class="about-hero">
+    <div class="container">
+      <Breadcrumbs items={breadcrumbs} />
+      <div class="about-hero-grid">
+        <div class="about-hero-text">
+          <p class="eyebrow">Despre medic</p>
+          <h1>{doctor.name}</h1>
+          <p class="role">{doctor.role} · {doctor.specialty}</p>
+          <p class="lead">{doctor.shortBio}</p>
+          <a href={routes.appointment} class="btn btn-primary">
+            <Icon name="calendar-check" size={20} />
+            Programează o consultație
+          </a>
+        </div>
+        <Portrait image={doctor.portrait} name={doctor.name} priority class="about-portrait" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container about-body">
+      <div class="about-story">
+        <PortableText value={doctor.bio} />
+      </div>
+
+      <div class="about-facts">
+        {
+          doctor.focusAreas.length > 0 && (
+            <div class="fact-card">
+              <h2>
+                <Icon name="hand" size={24} />
+                Arii de interes
+              </h2>
+              <ul class="check-list is-compact">
+                {doctor.focusAreas.map((area) => (
+                  <li>
+                    <Icon name="check" size={20} />
+                    <span>{area}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+
+        {
+          doctor.education.length > 0 && (
+            <div class="fact-card">
+              <h2>
+                <Icon name="graduation-cap" size={24} />
+                Formare
+              </h2>
+              <ol class="timeline">
+                {doctor.education.map((entry) => (
+                  <li>
+                    {entry.period && <span class="period">{entry.period}</span>}
+                    <p class="timeline-title">{entry.title}</p>
+                    <p class="muted">{entry.institution}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )
+        }
+
+        {
+          doctor.memberships.length > 0 && (
+            <div class="fact-card">
+              <h2>
+                <Icon name="shield-check" size={24} />
+                Afilieri
+              </h2>
+              <ul class="check-list is-compact">
+                {doctor.memberships.map((membership) => (
+                  <li>
+                    <Icon name="check" size={20} />
+                    <span>{membership}</span>
+                  </li>
+                ))}
+              </ul>
+              {settings.cmrCode && <p class="cmr">Cod CMR: {settings.cmrCode}</p>}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .about-hero {
+    padding-block: clamp(2rem, 1.5rem + 2vw, 3rem) clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    background:
+      radial-gradient(50rem 30rem at 100% 0%, var(--color-dusty-soft) 0%, transparent 70%),
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-sand-soft) 100%);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .about-hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: center;
+    gap: clamp(2.5rem, 1rem + 5vw, 6rem);
+    margin-top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+  }
+
+  .about-hero-text > * + * {
+    margin-top: 1.25rem;
+  }
+
+  .about-hero-text .role {
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: var(--color-dusty-deep);
+  }
+
+  .about-hero-text .btn {
+    margin-top: 2rem;
+  }
+
+  .about-hero :global(.about-portrait) {
+    max-width: 26rem;
+    width: 100%;
+    justify-self: end;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .about-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(2.5rem, 1rem + 5vw, 5.5rem);
+    align-items: start;
+  }
+
+  .about-story :global(.prose) {
+    font-size: 1.1875rem;
+  }
+
+  .about-facts {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .fact-card {
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+  }
+
+  .fact-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.375rem;
+  }
+
+  .fact-card h2 :global(.icon) {
+    color: var(--color-accent);
+  }
+
+  .timeline {
+    display: grid;
+    gap: 1.25rem;
+    list-style: none;
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--color-line);
+  }
+
+  .timeline li {
+    position: relative;
+  }
+
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    left: calc(-1.25rem - 6px);
+    top: 0.45rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-dusty);
+    box-shadow: 0 0 0 4px var(--color-surface);
+  }
+
+  .period {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--color-dusty-deep);
+  }
+
+  .timeline-title {
+    font-weight: 600;
+  }
+
+  .cmr {
+    margin-top: 1rem;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  @media (max-width: 900px) {
+    .about-hero-grid,
+    .about-body {
+      grid-template-columns: 1fr;
+    }
+
+    .about-hero :global(.about-portrait) {
+      justify-self: start;
+      max-width: 22rem;
+    }
+  }
+</style>
