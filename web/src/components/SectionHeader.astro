@@ -25,8 +25,8 @@ const { eyebrow, title, intro, align = 'start', id } = Astro.props;
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 1.5rem 3rem;
-    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    gap: 1rem 3rem;
+    margin-bottom: clamp(1.5rem, 1.25rem + 1.25vw, 2.5rem);
   }
 
   .section-header-text {
@@ -34,7 +34,7 @@ const { eyebrow, title, intro, align = 'start', id } = Astro.props;
   }
 
   .section-header-text > * + * {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
   }
 
   .align-center {

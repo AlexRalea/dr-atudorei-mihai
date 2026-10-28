@@ -59,12 +59,12 @@ const site = Astro.site!;
   .contact-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
-    gap: clamp(2.5rem, 1rem + 5vw, 5.5rem);
+    gap: clamp(2rem, 1rem + 3vw, 4rem);
     align-items: start;
   }
 
   .form-card {
-    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
     border-radius: var(--radius-xl);
     background: var(--color-surface);
     border: 1px solid var(--color-line);
@@ -77,13 +77,13 @@ const site = Astro.site!;
   }
 
   .form-card > .muted {
-    margin: 0.5rem 0 2rem;
+    margin: 0.35rem 0 1.5rem;
     font-size: 1rem;
   }
 
   .contact-aside {
     display: grid;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
   @media (max-width: 900px) {

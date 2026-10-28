@@ -26,7 +26,7 @@ const tel = telHref(settings.phone);
         <p>{text}</p>
       </div>
       <div class="cta-actions">
-        <a href={routes.appointment} class="btn btn-primary">
+        <a href={routes.appointment} class="btn btn-light">
           <Icon name="calendar-check" size={20} />
           Programează o consultație
         </a>
@@ -55,8 +55,8 @@ const tel = telHref(settings.phone);
     display: grid;
     grid-template-columns: 1.4fr auto;
     align-items: center;
-    gap: 2rem 3rem;
-    padding: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+    gap: 1.5rem 3rem;
+    padding: clamp(1.75rem, 1.25rem + 2vw, 3rem);
     border-radius: var(--radius-xl);
     background: linear-gradient(135deg, var(--color-navy) 0%, #34506a 100%);
     color: #e6edf3;
@@ -68,7 +68,7 @@ const tel = telHref(settings.phone);
   }
 
   .cta-text > * + * {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
   }
 
   h2 {

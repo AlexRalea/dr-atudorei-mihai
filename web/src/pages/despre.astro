@@ -124,7 +124,7 @@ const site = Astro.site!;
 
 <style>
   .about-hero {
-    padding-block: clamp(2rem, 1.5rem + 2vw, 3rem) clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    padding-block: clamp(1.25rem, 1rem + 1vw, 2rem) clamp(2.5rem, 2rem + 2.5vw, 4rem);
     background:
       radial-gradient(50rem 30rem at 100% 0%, var(--color-dusty-soft) 0%, transparent 70%),
       linear-gradient(180deg, var(--color-bg) 0%, var(--color-sand-soft) 100%);
@@ -135,12 +135,12 @@ const site = Astro.site!;
     display: grid;
     grid-template-columns: 1.2fr 0.8fr;
     align-items: center;
-    gap: clamp(2.5rem, 1rem + 5vw, 6rem);
-    margin-top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    margin-top: clamp(1rem, 0.75rem + 1.5vw, 2rem);
   }
 
   .about-hero-text > * + * {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
   }
 
   .about-hero-text .role {
@@ -150,7 +150,7 @@ const site = Astro.site!;
   }
 
   .about-hero-text .btn {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
   }
 
   .about-hero :global(.about-portrait) {
@@ -163,7 +163,7 @@ const site = Astro.site!;
   .about-body {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    gap: clamp(2.5rem, 1rem + 5vw, 5.5rem);
+    gap: clamp(2rem, 1rem + 3vw, 4rem);
     align-items: start;
   }
 
@@ -173,11 +173,11 @@ const site = Astro.site!;
 
   .about-facts {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
   .fact-card {
-    padding: 1.75rem;
+    padding: 1.25rem 1.4rem;
     border-radius: var(--radius-lg);
     background: var(--color-surface);
     border: 1px solid var(--color-line);
@@ -187,7 +187,7 @@ const site = Astro.site!;
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
     font-size: 1.375rem;
   }
 
@@ -197,7 +197,7 @@ const site = Astro.site!;
 
   .timeline {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
     list-style: none;
     padding-left: 1.25rem;
     border-left: 2px solid var(--color-line);
