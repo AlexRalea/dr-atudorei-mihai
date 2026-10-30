@@ -53,7 +53,7 @@ const site = Astro.site!;
   noindex={service.seo?.noindex}
   jsonLd={[serviceSchema(site, service, path), breadcrumbSchema(site, breadcrumbs), faqSchema(service.faqs)]}
 >
-  <PageHero breadcrumbs={breadcrumbs} eyebrow="Serviciu" title={service.title} intro={service.summary} />
+  <PageHero breadcrumbs={breadcrumbs} title={service.title} intro={service.summary} />
 
   <section class="section">
     <div class="container detail-grid">

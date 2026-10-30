@@ -60,7 +60,7 @@ const site = Astro.site!;
     faqSchema(condition.faqs),
   ]}
 >
-  <PageHero breadcrumbs={breadcrumbs} eyebrow="Afecțiune" title={condition.title} intro={condition.summary}>
+  <PageHero breadcrumbs={breadcrumbs} title={condition.title} intro={condition.summary}>
     {condition.aka && <p class="aka">Cunoscută și ca: {condition.aka}</p>}
   </PageHero>
 

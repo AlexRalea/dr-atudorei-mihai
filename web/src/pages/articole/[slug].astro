@@ -47,7 +47,7 @@ const site = Astro.site!;
   type="article"
   jsonLd={[articleSchema(site, article, doctor, path), breadcrumbSchema(site, breadcrumbs)]}
 >
-  <PageHero breadcrumbs={breadcrumbs} eyebrow={article.category} title={article.title} intro={article.excerpt}>
+  <PageHero breadcrumbs={breadcrumbs} title={article.title} intro={article.excerpt}>
     <p class="article-meta">
       <span><Icon name="user-round" size={18} /> {doctor.name}</span>
       <span><Icon name="calendar-check" size={18} /> <time datetime={article.publishedAt}>{formatDate(article.publishedAt)}</time></span>

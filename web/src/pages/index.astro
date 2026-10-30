@@ -101,7 +101,6 @@ const jsonLd = [
     <div class="container">
       <SectionHeader
         id="simptome"
-        eyebrow="Ce vă supără?"
         title="Porniți de la ce simțiți"
         intro="Alegeți situația care vi se potrivește. Aflați ce poate fi, când e bine să mergeți la medic și ce opțiuni de tratament există."
       >
@@ -125,7 +124,6 @@ const jsonLd = [
   <section class="section section-sand" aria-labelledby="despre">
     <div class="container about-grid">
       <div class="about-text" data-reveal>
-        <p class="eyebrow">Despre medic</p>
         <h2 id="despre">{doctor.name}</h2>
         <p class="about-role">{doctor.role} · {doctor.specialty}</p>
         <blockquote class="about-quote">
@@ -156,7 +154,6 @@ const jsonLd = [
     <div class="container">
       <SectionHeader
         id="servicii"
-        eyebrow="Servicii"
         title="Cum vă putem ajuta"
         intro="De la consultație și tratament fără operație până la intervenții chirurgicale și recuperare."
       >
@@ -181,7 +178,6 @@ const jsonLd = [
     <div class="container">
       <SectionHeader
         id="cum-decurge"
-        eyebrow="Cum decurge"
         title="De la primul telefon până la recuperare"
         align="center"
       />
@@ -193,7 +189,7 @@ const jsonLd = [
     articles.length > 0 && (
       <section class="section" aria-labelledby="articole">
         <div class="container">
-          <SectionHeader id="articole" eyebrow="Articole" title="Informații utile pentru pacienți">
+          <SectionHeader id="articole" title="Informații utile pentru pacienți">
             <a href={routes.articles} class="link-arrow">
               Toate articolele
               <Icon name="arrow-right" size={18} />
@@ -216,7 +212,6 @@ const jsonLd = [
       <section class="section section-sand" aria-labelledby="intrebari">
         <div class="container faq-grid">
           <div class="faq-intro" data-reveal>
-            <p class="eyebrow">Întrebări frecvente</p>
             <h2 id="intrebari">Răspunsuri la întrebările pe care le auzim des</h2>
             <a href={routes.faq} class="link-arrow">
               Toate întrebările
