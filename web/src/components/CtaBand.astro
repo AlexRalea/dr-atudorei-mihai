@@ -1,5 +1,6 @@
 ---
 import { getSettings } from '../lib/content';
+import { flowLinePath } from '../lib/flow-lines';
 import { telHref } from '../lib/format';
 import { routes } from '../lib/routes';
 import Icon from './Icon.astro';
@@ -20,11 +21,18 @@ const tel = telHref(settings.phone);
 
 // Titlul implicit are două fraze; fiecare stă pe rândul ei.
 const [firstLine, ...rest] = title.split(/(?<=\?)\s+/);
+
+// Liniile din fundal, desenate pentru o bandă tipică; în browser se recalculează pe dimensiunea reală.
+const LINES = 9;
+const lines = Array.from({ length: LINES }, (_, index) => flowLinePath(index, LINES, 1200, 320));
 ---
 
 <section class="cta-section">
   <div class="container">
-    <div class="cta-band" data-reveal>
+    <div class="cta-band" data-reveal data-ink data-flow-lines>
+      <svg class="cta-lines" viewBox="0 0 1200 320" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        {lines.map((d, index) => <path class="cta-line" pathLength="1" d={d} style={`--i: ${index}`} />)}
+      </svg>
       <div class="cta-decoration" aria-hidden="true">
         <HandArt />
       </div>
@@ -76,6 +84,41 @@ const [firstLine, ...rest] = title.split(/(?<=\?)\s+/);
   .cta-actions {
     position: relative;
     z-index: 1;
+  }
+
+  /* Liniile din fundal: un mănunchi care curge încet, ca liniile palmei. */
+  .cta-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    pointer-events: none;
+  }
+
+  .cta-line {
+    fill: none;
+    stroke: var(--color-dusty-light);
+    stroke-width: 1;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.13;
+  }
+
+  .cta-line:nth-child(3n + 2) {
+    stroke: var(--color-dusty);
+    opacity: 0.28;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .cta-line {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+
+    :global([data-lines-revealed]) .cta-line {
+      animation: ink-draw 2400ms var(--ease) calc(200ms + var(--i) * 110ms) both;
+    }
   }
 
   h2 {
@@ -167,3 +210,53 @@ const [firstLine, ...rest] = title.split(/(?<=\?)\s+/);
     }
   }
 </style>
+
+<script>
+  import { flowLinePath } from '../lib/flow-lines';
+
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-flow-lines]').forEach((band) => {
+    const svg = band.querySelector<SVGSVGElement>('.cta-lines')!;
+    const paths = [...svg.querySelectorAll<SVGPathElement>('path')];
+    let width = 0;
+    let height = 0;
+    let time = 0;
+    let visible = false;
+    let frame = 0;
+    let last = 0;
+
+    const render = () => {
+      if (!width || !height) return;
+      paths.forEach((path, index) => path.setAttribute('d', flowLinePath(index, paths.length, width, height, time)));
+    };
+
+    new ResizeObserver(() => {
+      width = band.offsetWidth;
+      height = band.offsetHeight;
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      render();
+    }).observe(band);
+
+    // Liniile curg doar cât timp banda e pe ecran.
+    const loop = (now: number) => {
+      time += Math.min(0.05, (now - last) / 1000);
+      last = now;
+      render();
+      frame = visible && !document.hidden ? requestAnimationFrame(loop) : 0;
+    };
+
+    const start = () => {
+      if (frame || !visible || reducedMotion.matches || document.hidden) return;
+      last = performance.now();
+      frame = requestAnimationFrame(loop);
+    };
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      start();
+    }).observe(band);
+
+    document.addEventListener('visibilitychange', start);
+  });
+</script>
