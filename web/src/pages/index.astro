@@ -2,6 +2,7 @@
 import CtaBand from '../components/CtaBand.astro';
 import FaqList from '../components/FaqList.astro';
 import ArticleShelf from '../components/home/ArticleShelf.astro';
+import HeroDecor from '../components/home/HeroDecor.astro';
 import ServiceWorkbench from '../components/home/ServiceWorkbench.astro';
 import SymptomExplorer from '../components/home/SymptomExplorer.astro';
 import Icon from '../components/Icon.astro';
@@ -58,6 +59,7 @@ const jsonLd = [
 
 <BaseLayout description={settings.description} jsonLd={jsonLd}>
   <section class="hero">
+    <HeroDecor />
     <div class="container hero-composition">
       <div class="hero-story">
         <h1>
@@ -216,8 +218,15 @@ const jsonLd = [
   /* Hero: un mesaj clar și un loc dedicat fotografiei medicului. */
 
   .hero {
+    position: relative;
+    isolation: isolate;
     overflow: clip;
     padding-block: 44px 48px;
+  }
+
+  .hero-composition {
+    position: relative;
+    z-index: 1;
   }
 
   .hero-composition {

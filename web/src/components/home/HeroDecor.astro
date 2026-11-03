@@ -1,0 +1,147 @@
+---
+import { Image } from 'astro:assets';
+import bisturiu from '../../assets/decor/bisturiu.webp';
+import firSutura from '../../assets/decor/fir-sutura.webp';
+import oaseleMainii from '../../assets/decor/oasele-mainii.webp';
+
+/** Obiecte 3D discrete în fundalul hero-ului; pur decorative, ascunse cititoarelor de ecran. */
+const items = [
+  { src: oaseleMainii, name: 'bones', width: 250 },
+  { src: firSutura, name: 'suture', width: 320 },
+  { src: bisturiu, name: 'scalpel', width: 210 },
+];
+---
+
+<div class="hero-decor" aria-hidden="true">
+  <div class="decor-frame">
+    {
+      items.map((item) => (
+        <div class:list={['decor', `decor-${item.name}`]}>
+          <Image
+            src={item.src}
+            alt=""
+            widths={[item.width, item.width * 2]}
+            sizes={`${item.width}px`}
+            loading="eager"
+            decoding="async"
+            fetchpriority="low"
+          />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .hero-decor {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .decor-frame {
+    position: relative;
+    height: 100%;
+    max-width: calc(var(--container) + var(--gutter) * 2);
+    margin-inline: auto;
+  }
+
+  .decor {
+    position: absolute;
+    width: var(--size);
+    opacity: var(--opacity);
+  }
+
+  .decor :global(img) {
+    width: 100%;
+    height: auto;
+    rotate: var(--rotate);
+  }
+
+  /* Firul de sutură și oasele mâinii ocupă spațiul dintre text și portret. */
+  .decor-suture {
+    --size: 320px;
+    --rotate: 8deg;
+    --opacity: 0.3;
+    left: 47%;
+    top: -60px;
+  }
+
+  .decor-bones {
+    --size: 250px;
+    --rotate: 32deg;
+    --opacity: 0.17;
+    left: 50%;
+    bottom: -150px;
+  }
+
+  /* Bisturiul se ivește din marginea dreaptă, lângă portret. */
+  .decor-scalpel {
+    --size: 200px;
+    --rotate: 78deg;
+    --opacity: 0.26;
+    right: -95px;
+    bottom: 90px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .decor {
+      animation: decor-float 16s ease-in-out infinite alternate;
+    }
+
+    .decor-suture {
+      animation-duration: 19s;
+      animation-delay: -6s;
+    }
+
+    .decor-scalpel {
+      animation-duration: 14s;
+      animation-delay: -3s;
+    }
+
+    @keyframes decor-float {
+      from {
+        translate: 0 0;
+      }
+      to {
+        translate: 6px -14px;
+      }
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .decor-scalpel {
+      display: none;
+    }
+  }
+
+  @media (max-width: 950px) {
+    .decor-suture {
+      --size: 260px;
+      left: 44%;
+    }
+
+    .decor-bones {
+      --size: 210px;
+      left: 46%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .decor-suture {
+      --size: 200px;
+      --opacity: 0.22;
+      left: auto;
+      right: -60px;
+      top: -30px;
+    }
+
+    .decor-bones {
+      --size: 220px;
+      left: -110px;
+      bottom: -120px;
+    }
+  }
+</style>
