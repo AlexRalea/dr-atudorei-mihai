@@ -1,34 +1,93 @@
 ---
-import { Image } from 'astro:assets';
-import bisturiu from '../../assets/decor/bisturiu.webp';
-import firSutura from '../../assets/decor/fir-sutura.webp';
-import oaseleMainii from '../../assets/decor/oasele-mainii.webp';
+/**
+ * Ornamente în linie pentru fundalul hero-ului: oasele mâinii, un ac cu fir de sutură și un bisturiu,
+ * desenate în același stil ca restul liniilor din pagină. Se trasează o singură dată, la încărcare.
+ */
 
-/** Obiecte 3D discrete în fundalul hero-ului; pur decorative, ascunse cititoarelor de ecran. */
-const items = [
-  { src: oaseleMainii, name: 'bones', width: 250 },
-  { src: firSutura, name: 'suture', width: 320 },
-  { src: bisturiu, name: 'scalpel', width: 210 },
+type Point = [number, number];
+
+/** Contur de os: o capsulă între a și b, cu capetele rotunjite. */
+function bone(a: Point, b: Point, radius: number) {
+  const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const nx = ((b[1] - a[1]) / length) * radius;
+  const ny = (-(b[0] - a[0]) / length) * radius;
+  const p = (x: number, y: number) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+  return [
+    `M${p(a[0] + nx, a[1] + ny)}`,
+    `L${p(b[0] + nx, b[1] + ny)}`,
+    `A${radius} ${radius} 0 0 1 ${p(b[0] - nx, b[1] - ny)}`,
+    `L${p(a[0] - nx, a[1] - ny)}`,
+    `A${radius} ${radius} 0 0 1 ${p(a[0] + nx, a[1] + ny)}Z`,
+  ].join('');
+}
+
+/** Un deget: metacarpianul și falangele, ușor răsfirate spre vârf. */
+function ray(base: Point, angle: number, spread: number, lengths: number[], radii: number[]) {
+  const paths: string[] = [];
+  let start = base;
+  lengths.forEach((length, i) => {
+    const direction = ((angle + spread * i) * Math.PI) / 180;
+    const end: Point = [start[0] + Math.sin(direction) * length, start[1] - Math.cos(direction) * length];
+    paths.push(bone(start, end, radii[i]));
+    const gap = 3.5;
+    start = [end[0] + Math.sin(direction) * gap, end[1] - Math.cos(direction) * gap];
+  });
+  return paths;
+}
+
+const handBones = [
+  // Radiusul și ulna
+  bone([108, 338], [112, 268], 9),
+  bone([150, 338], [148, 272], 7),
+  // Degetul mare și celelalte patru degete
+  ...ray([96, 228], -48, -6, [40, 30, 22], [5, 4.5, 3.8]),
+  ...ray([110, 214], -11, -2, [58, 37, 23, 16], [5, 4.5, 4, 3.4]),
+  ...ray([127, 210], -1, 0, [61, 41, 26, 17], [5, 4.6, 4, 3.4]),
+  ...ray([144, 212], 8, 2, [57, 38, 24, 16], [4.8, 4.4, 3.8, 3.2]),
+  ...ray([158, 219], 17, 4, [50, 30, 19, 14], [4.5, 4, 3.5, 3]),
+];
+
+// Oasele carpiene: două rânduri de pietricele rotunjite.
+const carpals = [
+  [104, 247, 9, 8],
+  [123, 249, 9, 8],
+  [141, 248, 8, 8],
+  [157, 245, 7, 7],
+  [101, 228, 8, 7],
+  [118, 230, 9, 8],
+  [137, 229, 9, 8],
+  [155, 228, 8, 8],
 ];
 ---
 
-<div class="hero-decor" aria-hidden="true">
+<div class="hero-decor" aria-hidden="true" data-ink>
   <div class="decor-frame">
-    {
-      items.map((item) => (
-        <div class:list={['decor', `decor-${item.name}`]}>
-          <Image
-            src={item.src}
-            alt=""
-            widths={[item.width, item.width * 2]}
-            sizes={`${item.width}px`}
-            loading="eager"
-            decoding="async"
-            fetchpriority="low"
-          />
-        </div>
-      ))
-    }
+    <svg class="decor decor-suture" viewBox="0 0 320 380" fill="none" focusable="false">
+      <path class="ink-stroke" pathLength="1" d="M62 214C24 168 26 96 74 52"></path>
+      <path class="ink-stroke ink-echo" pathLength="1" d="M70 220C30 170 34 98 80 58"></path>
+      <ellipse class="ink-stroke" pathLength="1" cx="78" cy="49" rx="5" ry="3" transform="rotate(-40 78 49)"></ellipse>
+      <path
+        class="ink-stroke"
+        pathLength="1"
+        d="M80 46C118 4 196 10 204 66C212 120 136 126 142 176C148 226 248 214 268 262C288 312 214 356 158 340C110 326 116 268 170 276"
+      ></path>
+    </svg>
+
+    <svg class="decor decor-bones" viewBox="0 0 260 345" fill="none" focusable="false">
+      {handBones.map((d) => <path class="ink-stroke" pathLength="1" d={d} />)}
+      {
+        carpals.map(([cx, cy, rx, ry]) => (
+          <ellipse class="ink-stroke" pathLength="1" cx={cx} cy={cy} rx={rx} ry={ry} />
+        ))
+      }
+    </svg>
+
+    <svg class="decor decor-scalpel" viewBox="0 0 260 80" fill="none" focusable="false">
+      <path class="ink-stroke" pathLength="1" d="M74 34L238 29C250 29 254 35 254 40C254 45 250 51 238 51L74 46"></path>
+      <path class="ink-stroke" pathLength="1" d="M74 34C50 29 22 32 6 47C30 52 54 49 74 46"></path>
+      <path class="ink-stroke" pathLength="1" d="M74 34V46"></path>
+      <path class="ink-stroke ink-echo" pathLength="1" d="M112 39L170 37.5M196 35V45M204 35V45M212 35V45"></path>
+    </svg>
   </div>
 </div>
 
@@ -50,64 +109,58 @@ const items = [
 
   .decor {
     position: absolute;
-    width: var(--size);
+    overflow: visible;
+    color: var(--color-action);
     opacity: var(--opacity);
-  }
-
-  .decor :global(img) {
-    width: 100%;
-    height: auto;
     rotate: var(--rotate);
   }
 
-  /* Firul de sutură și oasele mâinii ocupă spațiul dintre text și portret. */
+  .decor :global(.ink-echo) {
+    opacity: 0.45;
+  }
+
+  /* Firul de sutură leagă textul de portret, ca liniile desenate din restul paginii. */
   .decor-suture {
-    --size: 320px;
-    --rotate: 8deg;
-    --opacity: 0.3;
+    --rotate: 6deg;
+    --opacity: 0.42;
     left: 47%;
-    top: -60px;
+    top: -40px;
+    width: 250px;
   }
 
+  /* Oasele mâinii se ivesc de jos, sub fir. */
   .decor-bones {
-    --size: 250px;
-    --rotate: 32deg;
-    --opacity: 0.17;
-    left: 50%;
-    bottom: -150px;
+    --rotate: 24deg;
+    --opacity: 0.32;
+    left: 51%;
+    bottom: -70px;
+    width: 190px;
   }
 
-  /* Bisturiul se ivește din marginea dreaptă, lângă portret. */
+  /* Bisturiul, pe marginea din dreapta, lângă portret. */
   .decor-scalpel {
-    --size: 200px;
-    --rotate: 78deg;
-    --opacity: 0.26;
-    right: -95px;
-    bottom: 90px;
+    --rotate: 72deg;
+    --opacity: 0.38;
+    right: -70px;
+    bottom: 150px;
+    width: 190px;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .decor {
-      animation: decor-float 16s ease-in-out infinite alternate;
+    [data-lines-revealed] .decor :global(.ink-stroke) {
+      animation: ink-draw 2200ms var(--ease) 300ms both;
     }
 
-    .decor-suture {
-      animation-duration: 19s;
-      animation-delay: -6s;
+    [data-lines-revealed] .decor-bones :global(.ink-stroke) {
+      animation-delay: 550ms;
     }
 
-    .decor-scalpel {
-      animation-duration: 14s;
-      animation-delay: -3s;
+    [data-lines-revealed] .decor-scalpel :global(.ink-stroke) {
+      animation-delay: 800ms;
     }
 
-    @keyframes decor-float {
-      from {
-        translate: 0 0;
-      }
-      to {
-        translate: 6px -14px;
-      }
+    [data-lines-revealed] .decor {
+      animation: ink-curve-settle 4400ms var(--ease-in-out) both;
     }
   }
 
@@ -119,29 +172,30 @@ const items = [
 
   @media (max-width: 950px) {
     .decor-suture {
-      --size: 260px;
-      left: 44%;
+      left: 43%;
+      width: 210px;
     }
 
     .decor-bones {
-      --size: 210px;
       left: 46%;
+      width: 160px;
     }
   }
 
   @media (max-width: 640px) {
     .decor-suture {
-      --size: 200px;
-      --opacity: 0.22;
+      --opacity: 0.32;
       left: auto;
-      right: -60px;
+      right: -50px;
       top: -30px;
+      width: 170px;
     }
 
     .decor-bones {
-      --size: 220px;
-      left: -110px;
-      bottom: -120px;
+      --opacity: 0.24;
+      left: -40px;
+      bottom: -70px;
+      width: 150px;
     }
   }
 </style>
