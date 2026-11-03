@@ -1,21 +1,114 @@
 ---
-/** Desenul în linie al unei mâini, folosit ca ilustrație decorativă. */
+/** Desenul în linie al unei mâini deschise, cu palma spre privitor, folosit ca ilustrație decorativă. */
 interface Props {
   class?: string;
 }
 
 const { class: className } = Astro.props;
+
+type Point = [number, number];
+
+interface Finger {
+  base: Point;
+  angle: number;
+  length: number;
+  width: number;
+  tip: number;
+}
+
+// Degetul mare, apoi arătătorul, mijlociul, inelarul și degetul mic (centrul bazei, înclinare, lungime, semilățimi).
+const thumb: Finger = { base: [106, 230], angle: -52, length: 60, width: 17, tip: 12.5 };
+const fingers: Finger[] = [
+  { base: [128, 178], angle: -8, length: 92, width: 14, tip: 12.5 },
+  { base: [157, 172], angle: -1, length: 106, width: 14.5, tip: 13 },
+  { base: [185, 176], angle: 7, length: 96, width: 14, tip: 12.5 },
+  { base: [210, 190], angle: 17, length: 72, width: 12, tip: 11 },
+];
+
+const f = (n: number) => n.toFixed(1);
+const pt = ([x, y]: Point) => `${f(x)} ${f(y)}`;
+
+function geometry({ base, angle, length, width, tip }: Finger) {
+  const a = (angle * Math.PI) / 180;
+  const dir: Point = [Math.sin(a), -Math.cos(a)];
+  const side: Point = [Math.cos(a), Math.sin(a)];
+  const along = (t: number, offset: number): Point => [
+    base[0] + dir[0] * length * t + side[0] * offset,
+    base[1] + dir[1] * length * t + side[1] * offset,
+  ];
+  return {
+    leftBase: along(0, -width),
+    rightBase: along(0, width),
+    leftTip: along(1, -tip),
+    rightTip: along(1, tip),
+    along,
+    tip,
+  };
+}
+
+/** Latura stângă în sus, vârful rotunjit, latura dreaptă în jos; laturile sunt ușor bombate. */
+function fingerOutline(finger: Finger) {
+  const g = geometry(finger);
+  const bulge = (finger.width + finger.tip) / 2 + 1.2;
+  return [
+    `Q${pt(g.along(0.5, -bulge))} ${pt(g.leftTip)}`,
+    `A${g.tip} ${g.tip} 0 0 1 ${pt(g.rightTip)}`,
+    `Q${pt(g.along(0.5, bulge))} ${pt(g.rightBase)}`,
+  ].join('');
+}
+
+/** Scobitura dintre două degete, puțin sub baza lor. */
+function valley(from: Point, to: Point, depth = 5) {
+  const control: Point = [(from[0] + to[0]) / 2, Math.max(from[1], to[1]) + depth];
+  return `Q${pt(control)} ${pt(to)}`;
+}
+
+const t = geometry(thumb);
+const g = fingers.map(geometry);
+
+const outline = [
+  'M124 336',
+  `C122 304 108 262 ${pt(t.leftBase)}`,
+  fingerOutline(thumb),
+  `Q124 206 ${pt(g[0].leftBase)}`,
+  fingerOutline(fingers[0]),
+  valley(g[0].rightBase, g[1].leftBase),
+  fingerOutline(fingers[1]),
+  valley(g[1].rightBase, g[2].leftBase),
+  fingerOutline(fingers[2]),
+  valley(g[2].rightBase, g[3].leftBase, 6),
+  fingerOutline(fingers[3]),
+  'C228 214 238 262 220 298',
+  'L208 336',
+].join('');
+
+/** Pliurile degetelor: câte o linie scurtă la fiecare articulație. */
+function creases(finger: Finger, stops: number[]) {
+  const { along, tip } = geometry(finger);
+  return stops
+    .map((s) => {
+      const half = (finger.width + (tip - finger.width) * s) * 0.55;
+      const a = along(s, -half);
+      const b = along(s, half);
+      const mid = along(s - 0.012, 0);
+      return `M${pt(a)}Q${pt(mid)} ${pt(b)}`;
+    })
+    .join('');
+}
+
+const details = [
+  creases(thumb, [0.5]),
+  ...fingers.map((finger) => creases(finger, [0.42, 0.72])),
+  // Liniile palmei
+  'M120 214Q102 256 126 300',
+  'M124 232Q162 246 210 236',
+  'M142 206Q182 198 222 210',
+].join('');
 ---
 
 <svg class:list={['hand-art', className]} viewBox="0 0 300 340" fill="none" aria-hidden="true" focusable="false">
   <g stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <path
-      pathLength="1"
-      d="M109 298c2-34-10-49-24-66L49 187c-8-10-6-21 1-26 8-6 17-2 24 5l30 30-26-95c-4-14 0-23 9-25 11-3 17 5 21 18l19 63-7-104c-1-14 4-23 14-23 11-1 16 7 17 20l8 101 8-116c1-14 6-21 16-20 10 1 14 9 13 23l-5 117 19-92c3-13 9-19 18-17 10 3 12 12 9 25l-18 115c-3 26-2 53-12 77-9 22-18 34-17 65"
-    ></path>
-    <path
-      d="M104 196c17-9 37-9 54-1 16 8 27 21 28 39M128 158l5 25m27-32-1 26m33-28-7 32m-79 61c17 1 36 9 48 23m-35 33c16 5 37 6 59 0"
-    ></path>
-    <path d="M82 107l19-5m22-33 27-2m17-14 28 1m13 35 24 5" opacity=".45"></path>
+    <path pathLength="1" d={outline}></path>
+    <path d={details} opacity=".45"></path>
   </g>
 </svg>
