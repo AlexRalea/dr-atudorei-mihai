@@ -80,6 +80,7 @@ class InkButton {
   private amplitude = ENTRY_AMPLITUDE;
   private speed = REST.speed;
   private target = REST;
+  private entering = true;
   visible = false;
 
   constructor(button: HTMLElement, index: number) {
@@ -114,6 +115,7 @@ class InkButton {
 
   setHover(active: boolean) {
     this.target = active ? HOVER : REST;
+    this.entering = false;
     if (reducedMotion.matches) {
       this.amplitude = this.target.amplitude;
       this.render();
@@ -122,7 +124,10 @@ class InkButton {
 
   /** Avansează animația cu dt secunde: undele curg, iar amplitudinea și viteza tind lin spre starea dorită. */
   tick(dt: number) {
-    const ease = 1 - Math.exp(-dt / (this.amplitude > this.target.amplitude + 0.5 ? 0.45 : 0.22));
+    // La apariție forma se liniștește încet; trecerile de hover sunt rapide.
+    if (this.entering && this.amplitude < REST.amplitude + 0.2) this.entering = false;
+    const duration = this.target === HOVER ? 0.05 : this.entering ? 0.45 : 0.09;
+    const ease = 1 - Math.exp(-dt / duration);
     this.amplitude += (this.target.amplitude - this.amplitude) * ease;
     this.speed += (this.target.speed - this.speed) * ease;
     this.time += dt * this.speed;
