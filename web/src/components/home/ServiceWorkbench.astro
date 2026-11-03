@@ -1,0 +1,419 @@
+---
+import { routes } from '../../lib/routes';
+import type { Service } from '../../lib/types';
+import Icon from '../Icon.astro';
+import InkDivider from '../ink/InkDivider.astro';
+import InkFlourish from '../ink/InkFlourish.astro';
+
+interface Props {
+  services: Service[];
+}
+
+const { services } = Astro.props;
+---
+
+<div class="service-workbench" style={`--service-count: ${services.length}`} data-services>
+  {
+    services.map((service, index) => (
+      <article
+        class:list={['service-item', { 'is-active': index === 0 }]}
+        style={`--service-row: ${index + 1}`}
+        data-service={index}
+        data-ink-hover
+      >
+        <h3 class="service-title" data-reveal>
+          <button
+            type="button"
+            id={`service-trigger-${index}`}
+            aria-expanded={index === 0 ? 'true' : 'false'}
+            aria-controls={`service-panel-${index}`}
+          >
+            <span class="service-icon">
+              <Icon name={service.icon ?? 'hand'} size={22} strokeWidth={1.5} />
+            </span>
+            <span class="service-name">{service.title}</span>
+            <span class="service-state">
+              <Icon name="arrow-right" size={19} class="state-closed" />
+              <Icon name="check" size={19} class="state-open" />
+            </span>
+          </button>
+          <InkDivider class="service-divider" variant={index} />
+        </h3>
+        <div class="service-panel" id={`service-panel-${index}`} role="region" aria-labelledby={`service-trigger-${index}`}>
+          <div class="service-panel-inner">
+            <InkFlourish class="service-panel-art" variant="right" />
+            <div class="service-panel-heading">
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <h4>{service.title}</h4>
+            </div>
+            <p>{service.summary}</p>
+            <a href={routes.service(service.slug)} class="link-arrow">
+              Află mai multe
+              <Icon name="arrow-right" size={18} />
+            </a>
+            <a href={routes.appointment} class="btn btn-primary">
+              <Icon name="calendar-check" size={18} />
+              Programează o consultație
+            </a>
+          </div>
+        </div>
+      </article>
+    ))
+  }
+</div>
+
+<style is:global>
+  .service-workbench {
+    --ink-rule: var(--color-line);
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    column-gap: 55px;
+    align-items: stretch;
+  }
+
+  .service-item {
+    display: contents;
+  }
+
+  .service-title {
+    position: relative;
+    z-index: 2;
+    grid-column: 1;
+    grid-row: var(--service-row);
+  }
+
+  .service-title > button {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    min-height: 87px;
+    padding: 19px;
+    text-align: left;
+    color: var(--color-navy);
+    font-size: 1.25rem;
+    font-weight: 550;
+    line-height: 1.35;
+    transition: background var(--motion-medium);
+  }
+
+  .service-name {
+    flex: 1;
+  }
+
+  .service-divider {
+    position: absolute;
+    left: 0;
+    bottom: -7px;
+  }
+
+  .service-state {
+    display: grid;
+    color: var(--color-action);
+    transition: transform var(--motion-medium) var(--ease);
+  }
+
+  .service-state .state-open,
+  .is-active .service-state .state-closed {
+    display: none;
+  }
+
+  .is-active .service-state .state-open {
+    display: block;
+  }
+
+  .service-item:not(.is-active) .service-title > button:hover .service-state {
+    transform: translateX(4px);
+  }
+
+  .is-active .service-title > button {
+    border-radius: 14px;
+    background: var(--color-dusty-soft);
+    cursor: default;
+  }
+
+  .service-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    background: var(--color-dusty-soft);
+    color: var(--color-action);
+    transition:
+      background var(--motion-medium),
+      color var(--motion-medium),
+      transform var(--motion-medium) var(--ease);
+  }
+
+  .service-title > button:hover .service-icon,
+  .is-active .service-icon {
+    background: var(--color-action);
+    color: var(--color-surface);
+    transform: rotate(-7deg);
+  }
+
+  .service-panel {
+    position: relative;
+    display: none;
+    grid-column: 2;
+    grid-row: 1 / span var(--service-count);
+    overflow: hidden;
+    padding: 36px;
+    border-radius: 26px;
+    background: var(--color-dusty-soft);
+  }
+
+  .is-active .service-panel {
+    display: block;
+  }
+
+  .service-panel-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 440px;
+  }
+
+  .service-panel-inner > :not(.service-panel-art) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .service-panel-art {
+    position: absolute;
+    right: -150px;
+    bottom: -145px;
+    width: 280px;
+    height: 330px;
+    opacity: 0.27;
+  }
+
+  .service-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .service-panel-heading > span,
+  .service-panel-heading h4 {
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 2rem;
+    font-weight: 480;
+    line-height: 1.2;
+  }
+
+  .service-panel-heading > span {
+    color: var(--color-action);
+  }
+
+  .service-panel-heading h4 {
+    letter-spacing: -0.8px;
+    text-wrap: balance;
+  }
+
+  .service-panel-inner > p {
+    margin-top: 25px;
+    font-size: 1.1875rem;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+  }
+
+  .service-panel-inner > .link-arrow {
+    margin-top: 15px;
+    color: var(--color-action-hover);
+  }
+
+  .service-panel-inner > .btn {
+    margin-top: auto;
+    font-size: 0.9375rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .js .is-active .service-panel-inner {
+      animation: enter 500ms var(--ease) both;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .service-workbench {
+      column-gap: 35px;
+    }
+
+    .service-panel {
+      padding: 30px;
+    }
+  }
+
+  @media (max-width: 950px) {
+    .service-workbench {
+      column-gap: 25px;
+    }
+
+    .service-title > button {
+      gap: 12px;
+      padding: 16px 13px;
+      font-size: 1.125rem;
+    }
+
+    .service-icon {
+      width: 38px;
+      height: 38px;
+    }
+
+    .service-panel {
+      padding: 25px;
+    }
+
+    .service-panel-heading {
+      gap: 13px;
+    }
+
+    .service-panel-heading > span,
+    .service-panel-heading h4 {
+      font-size: 1.75rem;
+    }
+
+    .service-panel-inner > p {
+      font-size: 1.125rem;
+    }
+
+    .service-panel-inner > .btn {
+      padding-inline: 16px;
+      font-size: 0.8125rem;
+    }
+  }
+
+  /* Pe telefon (și fără JavaScript), serviciile devin o listă care se deschide pe rând. */
+  @media (max-width: 640px) {
+    .service-workbench,
+    .service-item {
+      display: block;
+    }
+
+    .service-title > button {
+      gap: 13px;
+      min-height: 91px;
+      padding: 20px 10px;
+      font-size: 1.1875rem;
+    }
+
+    .service-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .is-active .service-title > button {
+      border-radius: 14px 14px 0 0;
+    }
+
+    .service-panel,
+    .is-active .service-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      padding: 0;
+      border-radius: 0 0 14px 14px;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        grid-template-rows var(--motion-medium) var(--ease),
+        opacity 300ms,
+        visibility var(--motion-medium);
+    }
+
+    .is-active .service-panel {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .service-panel-inner {
+      display: block;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .service-panel-inner > :not(.service-panel-art) {
+      margin-inline: 23px;
+    }
+
+    .service-panel-heading {
+      gap: 13px;
+      margin-top: 22px;
+    }
+
+    .service-panel-heading > span,
+    .service-panel-heading h4 {
+      font-size: 1.6875rem;
+    }
+
+    .service-panel-inner > p {
+      margin-top: 20px;
+      font-size: 1.125rem;
+    }
+
+    .service-panel-inner > .link-arrow {
+      display: flex;
+      width: fit-content;
+      margin-top: 10px;
+    }
+
+    .service-panel-inner > .btn {
+      display: flex;
+      width: fit-content;
+      margin-top: 15px;
+      margin-bottom: 25px;
+      padding-inline: 16px;
+      font-size: 0.875rem;
+    }
+
+    .service-panel-art {
+      display: none;
+    }
+  }
+
+  html:not(.js) .service-workbench,
+  html:not(.js) .service-item {
+    display: block;
+  }
+
+  html:not(.js) .service-panel {
+    display: block;
+    margin-block: 12px 24px;
+  }
+
+  html:not(.js) .service-panel-inner {
+    min-height: 0;
+  }
+
+  html:not(.js) .service-panel-inner > .btn {
+    margin-top: 20px;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-services]').forEach((workbench) => {
+    const items = workbench.querySelectorAll<HTMLElement>('[data-service]');
+
+    const activate = (selected: HTMLElement) => {
+      items.forEach((item) => {
+        const active = item === selected;
+        const trigger = item.querySelector<HTMLButtonElement>('.service-title > button')!;
+        item.classList.toggle('is-active', active);
+        trigger.setAttribute('aria-expanded', String(active));
+        if (active) trigger.setAttribute('aria-disabled', 'true');
+        else trigger.removeAttribute('aria-disabled');
+        item.querySelector<HTMLElement>('.service-panel')!.inert = !active;
+      });
+    };
+
+    items.forEach((item) => {
+      item.querySelector('.service-title > button')?.addEventListener('click', () => activate(item));
+    });
+
+    activate(items[0]);
+  });
+</script>

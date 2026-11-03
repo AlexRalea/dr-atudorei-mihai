@@ -1,0 +1,40 @@
+---
+import { routes } from '../../lib/routes';
+import type { Condition } from '../../lib/types';
+import Icon from '../Icon.astro';
+
+interface Props {
+  condition: Condition;
+  index: number;
+  selected: boolean;
+}
+
+const { condition, index, selected } = Astro.props;
+---
+
+<div class:list={['symptom-choice', { 'is-selected': selected }]} data-reveal data-symptom={index}>
+  <button
+    type="button"
+    class="symptom-card"
+    aria-pressed={selected ? 'true' : 'false'}
+    aria-controls="symptom-result"
+    data-select={index}
+  >
+    <span class="symptom-heading">
+      <span class="symptom-number">{String(index + 1).padStart(2, '0')}</span>
+      <span class="symptom-title">„{condition.symptomPrompt}”</span>
+      <Icon name="arrow-right" size={18} />
+    </span>
+    <span class="symptom-meta">
+      Poate fi: <strong>{condition.title}</strong>
+    </span>
+  </button>
+  <div class="symptom-detail">
+    <div>
+      <a href={routes.condition(condition.slug)} class="link-arrow">
+        Află mai multe
+        <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </div>
+</div>

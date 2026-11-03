@@ -1,0 +1,479 @@
+---
+import { routes } from '../../lib/routes';
+import type { Condition } from '../../lib/types';
+import Icon from '../Icon.astro';
+import HandArt from '../ink/HandArt.astro';
+import SymptomChoice from './SymptomChoice.astro';
+
+interface Props {
+  conditions: Condition[];
+}
+
+const { conditions } = Astro.props;
+const half = Math.ceil(conditions.length / 2);
+const columns = [
+  conditions.slice(0, half).map((condition, index) => ({ condition, index })),
+  conditions.slice(half).map((condition, index) => ({ condition, index: index + half })),
+];
+---
+
+<div class="symptom-explorer" data-symptoms>
+  <div class="symptom-choices">
+    {columns[0].map(({ condition, index }) => <SymptomChoice condition={condition} index={index} selected={index === 0} />)}
+  </div>
+
+  <div class="symptom-map" data-reveal>
+    <div class="map-canvas">
+      <div class="map-orbit" aria-hidden="true"></div>
+      <div class="map-hand" aria-hidden="true">
+        <HandArt />
+      </div>
+      <div class="map-markers" role="group" aria-label="Porniți de la ce simțiți">
+        {
+          conditions.map((condition, index) => (
+            <button
+              type="button"
+              class:list={['map-marker', { 'is-selected': index === 0 }]}
+              aria-label={`„${condition.symptomPrompt}”`}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+              aria-controls="symptom-result"
+              data-select={index}
+              style={`--marker-angle: ${(index * 360) / conditions.length - 120}deg`}
+            >
+              <span>{String(index + 1).padStart(2, '0')}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <div class="preview-copy" id="symptom-result" aria-live="polite" aria-atomic="true">
+      {
+        conditions.map((condition, index) => (
+          <div class="preview-item" data-preview={index} hidden={index !== 0}>
+            <p>Poate fi:</p>
+            <h3>{condition.title}</h3>
+            <a href={routes.condition(condition.slug)} class="link-arrow">
+              Află mai multe
+              <Icon name="arrow-right" size={18} />
+            </a>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="symptom-choices">
+    {columns[1].map(({ condition, index }) => <SymptomChoice condition={condition} index={index} selected={index === 0} />)}
+  </div>
+</div>
+
+<style is:global>
+  .symptom-explorer {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+
+  .symptom-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .symptom-choice {
+    border: 1px solid var(--color-line);
+    border-radius: 16px;
+    background: var(--color-bg);
+    transition:
+      background var(--motion-medium),
+      border-color var(--motion-medium),
+      box-shadow var(--motion-medium),
+      opacity var(--motion-slow) var(--ease),
+      transform var(--motion-slow) var(--ease);
+  }
+
+  .symptom-choice.is-selected {
+    border-color: var(--color-dusty);
+    background: var(--color-dusty-soft);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .symptom-card {
+    display: block;
+    width: 100%;
+    padding: 21px;
+    text-align: left;
+    color: var(--color-navy);
+  }
+
+  .symptom-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .symptom-number {
+    padding-top: 4px;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-action);
+  }
+
+  .symptom-title {
+    flex: 1;
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 1.3125rem;
+    font-weight: 480;
+    letter-spacing: -0.5px;
+    line-height: 1.35;
+  }
+
+  .symptom-heading > .icon {
+    margin-top: 6px;
+    color: var(--color-action);
+    transition: transform var(--motion-medium) var(--ease);
+  }
+
+  .symptom-card:hover .symptom-heading > .icon {
+    transform: rotate(-35deg) translateX(3px);
+  }
+
+  .symptom-meta {
+    display: block;
+    margin-top: 15px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+  }
+
+  .symptom-meta strong {
+    font-weight: 550;
+    color: var(--color-action);
+  }
+
+  .is-selected .symptom-meta strong,
+  .is-selected .symptom-number {
+    color: var(--color-action-hover);
+  }
+
+  .symptom-detail {
+    display: none;
+  }
+
+  .symptom-detail .link-arrow {
+    margin: 0 21px 15px;
+    color: var(--color-action-hover);
+  }
+
+  /* Fără JavaScript, fiecare simptom are direct linkul către afecțiune. */
+  html:not(.js) .symptom-detail {
+    display: block;
+  }
+
+  .symptom-map {
+    min-width: 0;
+  }
+
+  .map-canvas {
+    position: relative;
+    height: 320px;
+  }
+
+  .map-orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 278px;
+    height: 278px;
+    border: 1px solid var(--color-dusty);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .map-orbit::after {
+    content: '';
+    position: absolute;
+    inset: 20px;
+    border-radius: 45% 50% 41% 47%;
+    background: var(--color-dusty-soft);
+  }
+
+  .map-hand {
+    position: absolute;
+    top: 31px;
+    left: 50%;
+    width: 180px;
+    height: 260px;
+    transform: translateX(-50%) rotate(-8deg);
+  }
+
+  .map-marker {
+    --marker-radius: 139px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--color-dusty);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-action);
+    font-size: 0.875rem;
+    transform: translate(-50%, -50%) rotate(var(--marker-angle)) translateX(var(--marker-radius))
+      rotate(calc(0deg - var(--marker-angle)));
+    transition:
+      background var(--motion-medium),
+      color var(--motion-medium),
+      scale var(--motion-medium) var(--ease);
+  }
+
+  .map-marker:hover {
+    scale: 1.1;
+  }
+
+  .map-marker.is-selected {
+    background: var(--color-action);
+    color: var(--color-surface);
+    scale: 1.08;
+  }
+
+  .preview-copy {
+    padding: 13px 5px 0;
+    text-align: center;
+  }
+
+  .preview-item p {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+  }
+
+  .preview-item h3 {
+    min-height: 2.4em;
+    margin-top: 6px;
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 480;
+    font-size: 1.8125rem;
+    letter-spacing: -0.7px;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .preview-item .link-arrow {
+    margin-top: 9px;
+    align-self: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .preview-item:not([hidden]) {
+      animation: enter 500ms var(--ease) both;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .symptom-explorer {
+      grid-template-columns: 1fr 0.95fr 1fr;
+      gap: 20px;
+    }
+
+    .symptom-card {
+      padding: 18px;
+    }
+
+    .symptom-heading {
+      gap: 9px;
+    }
+
+    .symptom-title {
+      font-size: 1.25rem;
+    }
+
+    .map-orbit {
+      width: 234px;
+      height: 234px;
+    }
+
+    .map-hand {
+      top: 45px;
+      width: 157px;
+      height: 230px;
+    }
+
+    .map-marker {
+      --marker-radius: 117px;
+    }
+  }
+
+  @media (max-width: 950px) {
+    .symptom-explorer {
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .symptom-map {
+      grid-column: span 2;
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      margin-inline: auto;
+    }
+
+    .map-canvas {
+      height: 285px;
+    }
+
+    .preview-copy {
+      padding-left: 30px;
+      text-align: left;
+    }
+
+    .preview-item h3 {
+      min-height: 0;
+      font-size: 2rem;
+    }
+
+    .preview-item .link-arrow {
+      align-self: flex-start;
+    }
+
+    .symptom-choices {
+      align-self: stretch;
+    }
+
+    .symptom-choice {
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .symptom-explorer {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .symptom-map {
+      grid-column: 1;
+      grid-template-columns: 160px 1fr;
+      gap: 17px;
+      margin-bottom: 12px;
+    }
+
+    .map-canvas {
+      height: 230px;
+    }
+
+    .map-orbit {
+      width: 152px;
+      height: 152px;
+    }
+
+    .map-orbit::after {
+      inset: 12px;
+    }
+
+    .map-hand {
+      top: 34px;
+      width: 108px;
+      height: 160px;
+    }
+
+    .map-marker {
+      --marker-radius: 76px;
+      font-size: 0.75rem;
+    }
+
+    .preview-copy {
+      min-width: 0;
+      padding: 0;
+    }
+
+    .preview-item p {
+      font-size: 0.875rem;
+    }
+
+    .preview-item h3 {
+      font-size: 1.5rem;
+      overflow-wrap: anywhere;
+    }
+
+    .preview-item .link-arrow {
+      gap: 9px;
+      margin-top: 12px;
+      font-size: 0.875rem;
+    }
+
+    .symptom-card {
+      padding: 21px;
+    }
+
+    .symptom-heading {
+      gap: 12px;
+    }
+
+    .symptom-title {
+      font-size: 1.375rem;
+    }
+
+    .symptom-meta {
+      margin-top: 14px;
+      font-size: 0.9375rem;
+    }
+
+    /* Pe telefon, simptomul ales își arată linkul direct în card. */
+    .symptom-detail {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        grid-template-rows var(--motion-medium) var(--ease),
+        opacity 300ms,
+        visibility var(--motion-medium);
+    }
+
+    .symptom-detail > div {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    html:not(.js) .symptom-detail,
+    .is-selected .symptom-detail {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-symptoms]').forEach((explorer) => {
+    const select = (selected: string) => {
+      explorer.querySelectorAll<HTMLElement>('[data-symptom]').forEach((choice) => {
+        const active = choice.dataset.symptom === selected;
+        choice.classList.toggle('is-selected', active);
+        choice.querySelector('.symptom-detail')?.toggleAttribute('inert', !active);
+      });
+      explorer.querySelectorAll<HTMLButtonElement>('[data-select]').forEach((button) => {
+        const active = button.dataset.select === selected;
+        button.setAttribute('aria-pressed', String(active));
+        button.classList.toggle('is-selected', active && button.classList.contains('map-marker'));
+      });
+      explorer.querySelectorAll<HTMLElement>('[data-preview]').forEach((preview) => {
+        preview.hidden = preview.dataset.preview !== selected;
+      });
+    };
+
+    explorer.querySelectorAll<HTMLButtonElement>('[data-select]').forEach((button) => {
+      button.addEventListener('click', () => select(button.dataset.select!));
+    });
+
+    select('0');
+  });
+</script>

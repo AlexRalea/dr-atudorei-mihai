@@ -1,18 +1,23 @@
 ---
+import InkUnderline from './ink/InkUnderline.astro';
+
 interface Props {
   title: string;
   intro?: string;
   align?: 'start' | 'center';
   id?: string;
+  /** Adaugă sub titlu o subliniere trasată de mână. */
+  sketched?: boolean;
 }
 
-const { title, intro, align = 'start', id } = Astro.props;
+const { title, intro, align = 'start', id, sketched = false } = Astro.props;
 ---
 
-<header class:list={['section-header', `align-${align}`]} data-reveal>
+<header class:list={['section-header', `align-${align}`]} data-reveal data-ink={sketched || undefined}>
   <div class="section-header-text">
     <h2 id={id}>{title}</h2>
-    {intro && <p class="lead">{intro}</p>}
+    {sketched && <InkUnderline />}
+    {intro && <p>{intro}</p>}
   </div>
   <slot />
 </header>
@@ -20,27 +25,51 @@ const { title, intro, align = 'start', id } = Astro.props;
 <style>
   .section-header {
     display: flex;
-    flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 1rem 3rem;
-    margin-bottom: clamp(1.5rem, 1.25rem + 1.25vw, 2.5rem);
+    gap: 35px;
+    margin-bottom: 35px;
   }
 
-  .section-header-text {
-    max-width: 44rem;
+  .section-header-text p {
+    max-width: 680px;
+    margin-top: 18px;
+    font-size: 1.125rem;
+    color: var(--color-text-muted);
   }
 
-  .section-header-text > * + * {
-    margin-top: 0.75rem;
+  .section-header > :global(.link-arrow) {
+    align-self: flex-end;
   }
 
   .align-center {
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
   }
 
-  .align-center .section-header-text {
+  .align-center :global(.ink-underline) {
     margin-inline: auto;
+  }
+
+  .align-center > :global(.link-arrow) {
+    align-self: center;
+  }
+
+  @media (max-width: 640px) {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 13px;
+      margin-bottom: 25px;
+    }
+
+    .section-header > :global(.link-arrow) {
+      align-self: flex-start;
+    }
+
+    .section-header-text p {
+      margin-top: 17px;
+    }
   }
 </style>

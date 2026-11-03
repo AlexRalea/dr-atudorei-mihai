@@ -1,12 +1,14 @@
 ---
-import ArticleCard from '../components/ArticleCard.astro';
-import ConditionCard from '../components/ConditionCard.astro';
 import CtaBand from '../components/CtaBand.astro';
 import FaqList from '../components/FaqList.astro';
+import ArticleShelf from '../components/home/ArticleShelf.astro';
+import ServiceWorkbench from '../components/home/ServiceWorkbench.astro';
+import SymptomExplorer from '../components/home/SymptomExplorer.astro';
 import Icon from '../components/Icon.astro';
+import InkFlourish from '../components/ink/InkFlourish.astro';
+import InkUnderline from '../components/ink/InkUnderline.astro';
 import Portrait from '../components/Portrait.astro';
 import SectionHeader from '../components/SectionHeader.astro';
-import ServiceCard from '../components/ServiceCard.astro';
 import Steps from '../components/Steps.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import {
@@ -17,7 +19,7 @@ import {
   getServices,
   getSettings,
 } from '../lib/content';
-import { isPlaceholder } from '../lib/format';
+import { heroTitleLines } from '../lib/format';
 import { routes } from '../lib/routes';
 import { faqSchema, physicianSchema, websiteSchema } from '../lib/schema';
 
@@ -32,7 +34,7 @@ const [settings, doctor, conditions, services, articles, faqs] = await Promise.a
 
 const symptomConditions = conditions.filter((condition) => condition.symptomPrompt).slice(0, 6);
 const homeFaqs = faqs.filter((faq) => faq.showOnHome).slice(0, 4);
-const city = isPlaceholder(settings.clinic.city) ? null : settings.clinic.city;
+const titleLines = heroTitleLines(settings.heroTitle);
 const site = Astro.site!;
 
 const steps = [
@@ -56,132 +58,120 @@ const jsonLd = [
 
 <BaseLayout description={settings.description} jsonLd={jsonLd}>
   <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-text">
-        <p class="hero-pill">
-          <Icon name="hand" size={18} />
-          {settings.specialty}{city && ` · ${city}`}
-        </p>
-        <h1>{settings.heroTitle}</h1>
-        <p class="lead">{settings.heroText}</p>
-        <div class="hero-actions">
+    <div class="container hero-composition">
+      <div class="hero-story">
+        <h1>
+          {
+            titleLines.map((line) => (
+              <span class="title-line">{line.map((segment) => (segment.em ? <em>{segment.text}</em> : segment.text))}</span>
+            ))
+          }
+        </h1>
+        <p class="hero-lead">{settings.heroText}</p>
+        <div class="hero-buttons">
           <a href={routes.appointment} class="btn btn-primary">
-            <Icon name="calendar-check" size={20} />
+            <Icon name="calendar-check" size={18} />
             Programează o consultație
           </a>
-          <a href={routes.conditions} class="btn btn-secondary">Afecțiuni tratate</a>
-        </div>
-        <ul class="hero-points">
-          <li><Icon name="check" size={18} /> Consultații pe bază de programare</li>
-          <li><Icon name="check" size={18} /> Opțiuni cu și fără operație</li>
-          <li><Icon name="check" size={18} /> Explicații clare la fiecare pas</li>
-        </ul>
-      </div>
-
-      <div class="hero-visual">
-        <svg class="hero-blob" viewBox="0 0 500 500" aria-hidden="true">
-          <path
-            d="M380 70c70 50 110 140 90 230s-90 160-190 170S80 430 40 340 20 150 100 90s210-70 280-20Z"
-            fill="currentColor"></path>
-        </svg>
-        <Portrait image={doctor.portrait} name={doctor.name} priority class="hero-portrait" />
-        <div class="hero-card hero-card-name">
-          <p class="hero-card-title">{doctor.name}</p>
-          <p class="hero-card-text">{doctor.role} · {doctor.specialty}</p>
-        </div>
-        <div class="hero-card hero-card-note">
-          <span class="note-icon"><Icon name="messages-square" size={20} /></span>
-          <p>Vă explicăm pe înțeles ce aveți și ce opțiuni există.</p>
+          <a href={routes.conditions} class="link-arrow">
+            Afecțiuni tratate
+            <Icon name="arrow-right" size={18} />
+          </a>
         </div>
       </div>
+      <figure class="hero-portrait">
+        <Portrait image={doctor.portrait} name={doctor.name} priority />
+        <figcaption>
+          <strong>{doctor.name}</strong>
+          <span>{doctor.role} · {doctor.specialty}</span>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="simptome">
-    <div class="container">
-      <SectionHeader
-        id="simptome"
-        title="Porniți de la ce simțiți"
-        intro="Alegeți situația care vi se potrivește. Aflați ce poate fi, când e bine să mergeți la medic și ce opțiuni de tratament există."
-      >
-        <a href={routes.conditions} class="link-arrow">
-          Toate afecțiunile
-          <Icon name="arrow-right" size={18} />
-        </a>
-      </SectionHeader>
-      <ul class="card-grid">
-        {
-          symptomConditions.map((condition, index) => (
-            <li>
-              <ConditionCard condition={condition} variant="symptom" delay={index * 60} />
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </section>
+  {
+    symptomConditions.length > 0 && (
+      <section class="section section-surface" aria-labelledby="simptome">
+        <div class="container">
+          <SectionHeader
+            id="simptome"
+            title="Porniți de la ce simțiți"
+            intro="Alegeți situația care vi se potrivește. Aflați ce poate fi, când e bine să mergeți la medic și ce opțiuni de tratament există."
+          >
+            <a href={routes.conditions} class="link-arrow">
+              Toate afecțiunile
+              <Icon name="arrow-right" size={18} />
+            </a>
+          </SectionHeader>
+          <SymptomExplorer conditions={symptomConditions} />
+        </div>
+      </section>
+    )
+  }
 
   <section class="section section-sand" aria-labelledby="despre">
     <div class="container about-grid">
-      <div class="about-text" data-reveal>
+      <div class="about-copy" data-reveal>
         <h2 id="despre">{doctor.name}</h2>
-        <p class="about-role">{doctor.role} · {doctor.specialty}</p>
-        <blockquote class="about-quote">
-          <p>{doctor.shortBio}</p>
-        </blockquote>
+        <p class="doctor-role">{doctor.role} · {doctor.specialty}</p>
         <a href={routes.about} class="btn btn-dark">
           Mai multe despre medic
           <Icon name="arrow-right" size={18} />
         </a>
       </div>
-      <div class="about-card" data-reveal style="--reveal-delay: 120ms">
-        <p class="about-card-title">Arii de interes</p>
-        <ul>
-          {
-            doctor.focusAreas.map((area) => (
-              <li>
-                <Icon name="check" size={18} />
-                <span>{area}</span>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
+      <blockquote class="about-quote" data-reveal>
+        <p>{doctor.shortBio}</p>
+      </blockquote>
+      {
+        doctor.focusAreas.length > 0 && (
+          <div class="interests" data-reveal>
+            <h3>
+              <Icon name="hand" size={22} strokeWidth={1.5} />
+              Arii de interes
+            </h3>
+            <ul>
+              {doctor.focusAreas.map((area) => (
+                <li>
+                  <Icon name="check" size={18} />
+                  <span>{area}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
     </div>
   </section>
 
   <section class="section" aria-labelledby="servicii">
-    <div class="container">
+    <div class="container" data-ink>
       <SectionHeader
         id="servicii"
         title="Cum vă putem ajuta"
         intro="De la consultație și tratament fără operație până la intervenții chirurgicale și recuperare."
+        sketched
       >
         <a href={routes.services} class="link-arrow">
           Toate serviciile
           <Icon name="arrow-right" size={18} />
         </a>
       </SectionHeader>
-      <ul class="card-grid">
-        {
-          services.map((service, index) => (
-            <li>
-              <ServiceCard service={service} delay={(index % 3) * 70} />
-            </li>
-          ))
-        }
-      </ul>
+      <ServiceWorkbench services={services} />
     </div>
   </section>
 
-  <section class="section section-dusty" aria-labelledby="cum-decurge">
+  <section class="steps-section" aria-labelledby="cum-decurge">
     <div class="container">
-      <SectionHeader
-        id="cum-decurge"
-        title="De la primul telefon până la recuperare"
-        align="center"
-      />
-      <Steps steps={steps} />
+      <div class="journey-layout" data-ink>
+        <div class="journey-ornaments" aria-hidden="true">
+          <InkFlourish class="journey-corner" />
+        </div>
+        <div class="journey-heading" data-reveal>
+          <h2 id="cum-decurge">De la primul telefon <em>până la recuperare</em></h2>
+          <InkUnderline />
+        </div>
+        <Steps steps={steps} />
+      </div>
     </div>
   </section>
 
@@ -189,19 +179,7 @@ const jsonLd = [
     articles.length > 0 && (
       <section class="section" aria-labelledby="articole">
         <div class="container">
-          <SectionHeader id="articole" title="Informații utile pentru pacienți">
-            <a href={routes.articles} class="link-arrow">
-              Toate articolele
-              <Icon name="arrow-right" size={18} />
-            </a>
-          </SectionHeader>
-          <ul class="card-grid">
-            {articles.slice(0, 3).map((article, index) => (
-              <li>
-                <ArticleCard article={article} delay={index * 70} />
-              </li>
-            ))}
-          </ul>
+          <ArticleShelf id="articole" articles={articles.slice(0, 6)} />
         </div>
       </section>
     )
@@ -209,17 +187,22 @@ const jsonLd = [
 
   {
     homeFaqs.length > 0 && (
-      <section class="section section-sand" aria-labelledby="intrebari">
+      <section class="section section-sand faq-section" aria-labelledby="intrebari" data-ink>
+        <div class="faq-flourishes" aria-hidden="true">
+          <InkFlourish class="faq-flourish faq-flourish-left" />
+          <InkFlourish class="faq-flourish faq-flourish-right" variant="right" />
+        </div>
         <div class="container faq-grid">
-          <div class="faq-intro" data-reveal>
+          <div class="faq-heading" data-reveal>
             <h2 id="intrebari">Răspunsuri la întrebările pe care le auzim des</h2>
+            <InkUnderline class="faq-heading-stroke" />
             <a href={routes.faq} class="link-arrow">
               Toate întrebările
               <Icon name="arrow-right" size={18} />
             </a>
           </div>
-          <div data-reveal style="--reveal-delay: 100ms">
-            <FaqList faqs={homeFaqs} />
+          <div class="faq-items" data-reveal>
+            <FaqList faqs={homeFaqs} openFirst group="intrebari-acasa" />
           </div>
         </div>
       </section>
@@ -230,294 +213,631 @@ const jsonLd = [
 </BaseLayout>
 
 <style>
-  /* Hero */
+  /* Hero: un mesaj clar și un loc dedicat fotografiei medicului. */
 
   .hero {
-    position: relative;
-    overflow: hidden;
-    padding-block: clamp(2rem, 1.25rem + 3vw, 4rem) clamp(3rem, 2rem + 3vw, 5rem);
-    background:
-      radial-gradient(60rem 30rem at 85% 0%, var(--color-dusty-soft) 0%, transparent 70%),
-      radial-gradient(50rem 30rem at 0% 100%, var(--color-sand-soft) 0%, transparent 70%);
+    overflow: clip;
+    padding-block: 44px 48px;
   }
 
-  .hero-grid {
+  .hero-composition {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    align-items: center;
-    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+    gap: 90px;
+    align-items: start;
   }
 
-  .hero-text > * + * {
-    margin-top: 1.25rem;
-  }
-
-  .hero-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 1rem 0.4rem 0.8rem;
-    border-radius: var(--radius-pill);
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    box-shadow: var(--shadow-sm);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--color-dusty-deep);
+  .hero-story {
+    align-self: center;
+    min-width: 0;
+    padding-bottom: 44px;
   }
 
   .hero h1 {
-    max-width: 14ch;
+    font-size: clamp(59px, 5vw, 72px);
+    line-height: 1.12;
+    text-wrap: initial;
   }
 
-  .hero .lead {
-    max-width: 38rem;
+  .title-line {
+    display: block;
   }
 
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding-top: 0.25rem;
+  .title-line + .title-line {
+    padding-left: 44px;
   }
 
-  .hero-points {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 1.5rem;
-    padding-top: 0.5rem;
-    list-style: none;
-    font-size: 1rem;
+  .hero h1 em {
+    font-weight: inherit;
+    color: var(--color-action);
+    white-space: nowrap;
+  }
+
+  .hero-lead {
+    max-width: 475px;
+    margin: 26px 0 0 44px;
+    font-size: 1.125rem;
+    line-height: 1.7;
     color: var(--color-text-muted);
   }
 
-  .hero-points li {
-    display: inline-flex;
+  .hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.45rem;
+    gap: 12px 25px;
+    margin: 29px 0 0 44px;
   }
 
-  .hero-points :global(.icon) {
-    color: var(--color-accent);
+  .hero-buttons .link-arrow {
+    align-self: center;
   }
 
-  .hero-visual {
-    position: relative;
-    max-width: 30rem;
-    margin-inline: auto;
+  .hero-portrait {
+    --portrait-h: 470px;
+    justify-self: end;
     width: 100%;
+    max-width: 410px;
+    margin: 0;
   }
 
-  .hero-blob {
-    position: absolute;
-    inset: -12% -14% -10% -10%;
-    width: 124%;
-    height: 122%;
-    color: var(--color-sand);
-    animation: drift 18s ease-in-out infinite alternate;
+  .hero-portrait :global(.portrait) {
+    aspect-ratio: auto;
+    height: var(--portrait-h);
+    border-radius: 210px 210px 18px 18px;
   }
 
-  @keyframes drift {
-    to {
-      transform: rotate(8deg) scale(1.03);
-    }
+  figcaption {
+    padding-top: 20px;
+    text-align: center;
   }
 
-  .hero-visual :global(.hero-portrait) {
-    position: relative;
-    box-shadow: var(--shadow-lg);
-  }
-
-  .hero-card {
-    position: absolute;
-    border-radius: var(--radius);
-    background: rgb(255 253 249 / 0.92);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: var(--shadow);
-  }
-
-  .hero-card-name {
-    left: -2.5rem;
-    bottom: 2.5rem;
-    padding: 1rem 1.35rem;
-    animation: float 7s ease-in-out infinite;
-  }
-
-  .hero-card-title {
+  figcaption strong {
+    display: block;
     font-family: var(--font-serif);
     font-variation-settings: 'SOFT' 100;
-    font-size: 1.25rem;
-    font-weight: 520;
+    font-size: 1.5625rem;
+    font-weight: 480;
+    letter-spacing: -0.6px;
+    line-height: 1.35;
   }
 
-  .hero-card-text {
-    font-size: var(--text-sm);
+  figcaption span {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.9375rem;
     color: var(--color-text-muted);
   }
 
-  .hero-card-note {
-    right: -2rem;
-    top: 2.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    max-width: 16rem;
-    padding: 0.9rem 1.1rem;
-    font-size: 0.9375rem;
-    line-height: 1.4;
-    animation: float 8s ease-in-out -3s infinite;
-  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-story > *,
+    .hero-portrait {
+      animation: enter 700ms var(--ease) both;
+    }
 
-  .note-icon {
-    display: grid;
-    flex-shrink: 0;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 12px;
-    background: var(--color-accent-soft);
-    color: var(--color-accent);
-  }
+    .hero-portrait {
+      animation-duration: 900ms;
+      animation-delay: 100ms;
+    }
 
-  @keyframes float {
-    50% {
-      transform: translateY(-8px);
+    .hero-story > h1 {
+      animation-delay: 70ms;
+    }
+
+    .hero-story > .hero-lead {
+      animation-delay: 140ms;
+    }
+
+    .hero-story > .hero-buttons {
+      animation-delay: 210ms;
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .hero-blob,
-    .hero-card {
-      animation: none;
-    }
-  }
-
-  @media (max-width: 960px) {
-    .hero-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .hero-visual {
-      max-width: 26rem;
-      margin-top: 1rem;
-    }
-
-    .hero-card-name {
-      left: -1rem;
-    }
-
-    .hero-card-note {
-      right: -1rem;
-    }
-  }
-
-  @media (max-width: 560px) {
-    .hero-actions .btn {
-      flex: 1 1 100%;
-    }
-
-    .hero-visual {
-      max-width: 20rem;
-    }
-
-    .hero-card-note {
-      display: none;
-    }
-  }
-
-  /* Despre medic */
+  /* Despre medic: semnătura, un citat amplu și ariile de interes. */
 
   .about-grid {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    align-items: center;
-    gap: clamp(2rem, 1rem + 3vw, 4rem);
+    grid-template-columns: 280px 1fr;
+    grid-template-areas:
+      'author quote'
+      'author interests';
+    column-gap: 95px;
+    row-gap: 33px;
+    align-items: start;
   }
 
-  .about-text > * + * {
-    margin-top: 1rem;
+  .about-copy {
+    position: sticky;
+    top: calc(var(--header-h-scrolled) + 39px);
+    grid-area: author;
   }
 
-  .about-role {
-    margin-top: 0.5rem !important;
-    font-weight: 600;
-    color: var(--color-dusty-deep);
+  .about-copy h2 {
+    font-size: 2.1875rem;
+  }
+
+  .doctor-role {
+    margin-top: 12px;
+    font-size: 1rem;
+    color: var(--color-action-hover);
+  }
+
+  .about-copy .btn {
+    margin-top: 27px;
+    padding-inline: 18px;
+    font-size: 0.875rem;
   }
 
   .about-quote {
-    margin: 1.25rem 0 1.5rem;
-    padding-left: 1.5rem;
-    border-left: 3px solid var(--color-accent);
+    position: relative;
+    grid-area: quote;
+    margin: 0;
     font-family: var(--font-serif);
     font-variation-settings: 'SOFT' 100;
-    font-size: var(--text-xl);
-    line-height: 1.45;
-    color: var(--color-navy);
+    font-size: 2rem;
+    font-weight: 480;
+    line-height: 1.5;
+    letter-spacing: -0.7px;
   }
 
-  .about-card {
-    padding: clamp(1.35rem, 1.1rem + 1vw, 2rem);
-    border-radius: var(--radius-xl);
-    background: var(--color-surface);
-    box-shadow: var(--shadow);
+  .about-quote::before {
+    content: '\201C';
+    position: absolute;
+    top: -10px;
+    left: -40px;
+    font-size: 75px;
+    line-height: 1;
+    color: var(--color-accent);
+    opacity: 0.7;
   }
 
-  .about-card-title {
-    margin-bottom: 1rem;
-    font-size: var(--text-sm);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
+  .interests {
+    grid-area: interests;
+    padding-top: 25px;
+    border-top: 1px solid var(--color-line-strong);
   }
 
-  .about-card ul {
+  .interests h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+  }
+
+  .interests :global(.icon) {
+    color: var(--color-action);
+  }
+
+  .interests ul {
     display: grid;
-    gap: 0.7rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 17px 29px;
+    margin-top: 23px;
     list-style: none;
   }
 
-  .about-card li {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.75rem;
-    align-items: start;
+  .interests li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
     font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
   }
 
-  .about-card :global(.icon) {
-    margin-top: 0.25rem;
-    padding: 0.2rem;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 50%;
-    background: var(--color-dusty-light);
-    color: var(--color-dusty-deep);
+  .interests li :global(.icon) {
+    margin-top: 4px;
   }
 
-  @media (max-width: 860px) {
-    .about-grid {
-      grid-template-columns: 1fr;
-    }
+  /* Pașii pacientului: un ghid deschis, nu patru carduri izolate. */
+
+  .steps-section {
+    padding-block: 24px 64px;
+  }
+
+  .journey-layout {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+    gap: 72px;
+    align-items: start;
+    padding: 49px 52px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-xl);
+    background: var(--color-sand-soft);
+  }
+
+  .journey-ornaments {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .journey-layout :global(.journey-corner) {
+    position: absolute;
+    left: -90px;
+    bottom: -110px;
+    width: 300px;
+    height: 330px;
+    opacity: 0.24;
+  }
+
+  .journey-heading {
+    position: sticky;
+    z-index: 1;
+    top: calc(var(--header-h-scrolled) + 44px);
+    padding-top: 4px;
+  }
+
+  .journey-heading h2 {
+    max-width: 360px;
+    font-size: 2.75rem;
+    line-height: 1.18;
+  }
+
+  .journey-heading em {
+    display: block;
+    font-weight: inherit;
+    color: var(--color-action-hover);
   }
 
   /* Întrebări frecvente */
 
+  .faq-section {
+    position: relative;
+    overflow: clip;
+    isolation: isolate;
+  }
+
   .faq-grid {
-    display: grid;
-    grid-template-columns: 0.8fr 1.2fr;
-    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
-    align-items: start;
+    position: relative;
+    z-index: 1;
   }
 
-  .faq-intro > * + * {
-    margin-top: 1rem;
+  .faq-flourishes {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
   }
 
-  @media (max-width: 860px) {
-    .faq-grid {
+  .faq-section :global(.faq-flourish) {
+    position: absolute;
+    width: 245px;
+    height: 330px;
+    opacity: 0.33;
+  }
+
+  .faq-section :global(.faq-flourish-left) {
+    left: -95px;
+    top: 36%;
+  }
+
+  .faq-section :global(.faq-flourish-right) {
+    right: -105px;
+    top: 7%;
+  }
+
+  .faq-heading {
+    max-width: 720px;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .faq-heading h2 {
+    font-size: 2.75rem;
+  }
+
+  .faq-heading :global(.faq-heading-stroke) {
+    margin-inline: auto;
+  }
+
+  .faq-heading .link-arrow {
+    margin-top: 9px;
+    color: var(--color-action-hover);
+  }
+
+  .faq-items {
+    max-width: 900px;
+    margin: 30px auto 0;
+  }
+
+  @media (max-width: 1200px) {
+    .hero-composition {
+      gap: 55px;
+    }
+
+    .hero h1 {
+      font-size: 62px;
+    }
+
+    .hero-portrait {
+      --portrait-h: 440px;
+    }
+
+    .hero-buttons {
+      gap: 9px 18px;
+    }
+
+    .hero-buttons .btn {
+      padding-inline: 17px;
+      font-size: 0.875rem;
+    }
+
+    .about-grid {
+      grid-template-columns: 245px 1fr;
+      column-gap: 70px;
+    }
+
+    .about-quote {
+      font-size: 1.8125rem;
+    }
+
+    .journey-layout {
+      gap: 45px;
+      padding: 42px;
+    }
+
+    .journey-heading h2 {
+      font-size: 2.5rem;
+    }
+
+    .faq-section :global(.faq-flourish) {
+      width: 195px;
+      opacity: 0.25;
+    }
+  }
+
+  @media (max-width: 950px) {
+    .hero-composition {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 33px;
+    }
+
+    .hero h1 {
+      font-size: 52px;
+    }
+
+    .hero-portrait {
+      --portrait-h: 400px;
+    }
+
+    .title-line + .title-line {
+      padding-left: 0;
+    }
+
+    .hero-lead {
+      margin: 20px 0 0;
+    }
+
+    .hero-buttons {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      margin: 22px 0 0;
+    }
+
+    .hero-buttons .link-arrow {
+      align-self: flex-start;
+    }
+
+    figcaption strong {
+      font-size: 1.4375rem;
+    }
+
+    figcaption span {
+      font-size: 0.8125rem;
+    }
+
+    .about-grid {
+      grid-template-columns: 210px 1fr;
+      column-gap: 50px;
+    }
+
+    .about-copy h2 {
+      font-size: 1.9375rem;
+    }
+
+    .about-copy .btn {
+      padding-inline: 14px;
+      font-size: 0.8125rem;
+    }
+
+    .about-quote {
+      font-size: 1.6875rem;
+    }
+
+    .interests ul {
       grid-template-columns: 1fr;
+    }
+
+    .journey-layout {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.2fr);
+      gap: 32px;
+      padding: 35px;
+      border-radius: 30px;
+    }
+
+    .journey-heading h2 {
+      font-size: 2.1875rem;
+    }
+
+    .faq-heading h2 {
+      font-size: 2.5rem;
+    }
+
+    .faq-flourishes {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding-block: 31px 40px;
+    }
+
+    .hero-composition {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'title' 'portrait' 'lead' 'buttons';
+      gap: 24px;
+    }
+
+    .hero-story {
+      display: contents;
+    }
+
+    .hero h1 {
+      grid-area: title;
+      font-size: clamp(42px, 12vw, 62px);
+      line-height: 1.13;
+    }
+
+    .hero-portrait {
+      grid-area: portrait;
+      justify-self: center;
+      width: 86%;
+      max-width: 315px;
+      --portrait-h: 310px;
+    }
+
+    .hero-portrait :global(.portrait) {
+      border-radius: 160px 160px 14px 14px;
+    }
+
+    figcaption {
+      padding-top: 16px;
+    }
+
+    figcaption strong {
+      font-size: 1.4375rem;
+    }
+
+    figcaption span {
+      font-size: 0.875rem;
+    }
+
+    .hero-lead {
+      grid-area: lead;
+      margin: 0;
+    }
+
+    .hero-buttons {
+      grid-area: buttons;
+      align-items: stretch;
+      gap: 7px;
+      margin: 0;
+    }
+
+    .hero-buttons .btn {
+      min-height: 50px;
+      font-size: 1rem;
+    }
+
+    .hero-buttons .link-arrow {
+      align-self: center;
+    }
+
+    .about-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 29px;
+    }
+
+    .about-copy {
+      position: static;
+    }
+
+    .about-copy h2 {
+      font-size: 2.1875rem;
+    }
+
+    .about-copy .btn {
+      margin-top: 23px;
+      padding-inline: 20px;
+      font-size: 0.9375rem;
+    }
+
+    .about-quote {
+      font-size: 1.625rem;
+    }
+
+    .about-quote::before {
+      position: static;
+      display: block;
+      height: 29px;
+      margin-bottom: 12px;
+      font-size: 65px;
+      line-height: 0.8;
+    }
+
+    .interests {
+      width: 100%;
+    }
+
+    .interests h3 {
+      font-size: 1.3125rem;
+    }
+
+    .interests ul {
+      gap: 20px;
+    }
+
+    .interests li {
+      font-size: 1.125rem;
+    }
+
+    .steps-section {
+      padding-block: 0 40px;
+    }
+
+    .steps-section > .container {
+      padding-inline: 0;
+    }
+
+    .journey-layout {
+      grid-template-columns: 1fr;
+      gap: 29px;
+      padding: 38px 20px 39px;
+      border-inline: 0;
+      border-radius: 0;
+    }
+
+    .journey-heading {
+      position: static;
+      padding-top: 0;
+    }
+
+    .journey-ornaments {
+      display: none;
+    }
+
+    .journey-heading h2 {
+      max-width: 350px;
+      font-size: 2.1875rem;
+    }
+
+    .faq-heading {
+      text-align: left;
+    }
+
+    .faq-heading h2 {
+      font-size: 2.1875rem;
+    }
+
+    .faq-heading .link-arrow {
+      margin-top: 16px;
+    }
+
+    .faq-heading :global(.faq-heading-stroke) {
+      margin-left: 0;
+    }
+
+    .faq-items {
+      margin-top: 25px;
     }
   }
 </style>

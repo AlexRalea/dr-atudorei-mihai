@@ -76,7 +76,15 @@ export const siteSettingsType = defineType({
         defineField({ name: 'linkedin', title: 'LinkedIn', type: 'url' }),
       ],
     }),
-    defineField({ name: 'heroTitle', title: 'Titlul principal', type: 'string', group: 'home', validation: (rule) => rule.required() }),
+    defineField({
+      name: 'heroTitle',
+      title: 'Titlul principal',
+      description:
+        'Opțional: „|” desparte titlul pe două rânduri, iar *cuvintele între steluțe* apar evidențiate. Exemplu: Pentru mâinile | cu care *faceți totul*',
+      type: 'string',
+      group: 'home',
+      validation: (rule) => rule.required(),
+    }),
     defineField({ name: 'heroText', title: 'Textul de sub titlu', type: 'text', rows: 3, group: 'home', validation: (rule) => rule.required() }),
   ],
   preview: { prepare: () => ({ title: 'Setări site' }) },

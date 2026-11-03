@@ -773,7 +773,7 @@ button {
     transition-delay: 0ms;
   }
 
-  .js .ink-stroke {
+  .js [data-ink] .ink-stroke {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
   }

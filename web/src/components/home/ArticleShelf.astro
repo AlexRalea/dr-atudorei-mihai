@@ -1,0 +1,172 @@
+---
+import { routes } from '../../lib/routes';
+import type { Article } from '../../lib/types';
+import ArticleCard from '../ArticleCard.astro';
+import Icon from '../Icon.astro';
+import SectionHeader from '../SectionHeader.astro';
+
+interface Props {
+  articles: Article[];
+  id: string;
+}
+
+const { articles, id } = Astro.props;
+const title = 'Informații utile pentru pacienți';
+---
+
+<div class="shelf" data-shelf>
+  <div class="shelf-heading">
+    <SectionHeader id={id} title={title}>
+      <a href={routes.articles} class="link-arrow">
+        Toate articolele
+        <Icon name="arrow-right" size={18} />
+      </a>
+    </SectionHeader>
+    <div class="shelf-controls">
+      <button type="button" aria-label="Articolele anterioare" aria-controls="article-rail" data-shelf-move="-1" disabled>
+        <Icon name="arrow-left" size={20} />
+      </button>
+      <button type="button" aria-label="Articolele următoare" aria-controls="article-rail" data-shelf-move="1">
+        <Icon name="arrow-right" size={20} />
+      </button>
+    </div>
+  </div>
+  <div class="article-rail" id="article-rail" role="region" aria-label={title} tabindex="0" data-shelf-rail>
+    {articles.map((article, index) => <ArticleCard article={article} index={index} delay={index * 70} />)}
+  </div>
+</div>
+
+<style>
+  .shelf-heading {
+    display: flex;
+    align-items: flex-end;
+    gap: 26px;
+    margin-bottom: 33px;
+  }
+
+  .shelf-heading > :global(.section-header) {
+    flex: 1;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  .shelf-controls {
+    display: flex;
+    gap: 9px;
+  }
+
+  :global(html:not(.js)) .shelf-controls {
+    display: none;
+  }
+
+  .shelf-controls button {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid var(--color-dusty);
+    border-radius: 50%;
+    color: var(--color-action);
+    transition:
+      background var(--motion-fast),
+      opacity var(--motion-fast);
+  }
+
+  .shelf-controls button:not(:disabled):hover {
+    background: var(--color-dusty-light);
+  }
+
+  .shelf-controls button:disabled {
+    opacity: 0.35;
+  }
+
+  .article-rail {
+    display: flex;
+    align-items: stretch;
+    gap: 28px;
+    padding: 5px 2px 26px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-dusty) var(--color-sand-soft);
+  }
+
+  .article-rail > :global(.article-card) {
+    flex: 0 0 44%;
+    height: auto;
+    scroll-snap-align: start;
+    scroll-margin-inline: 2px;
+  }
+
+  @media (max-width: 950px) {
+    .shelf-heading > :global(.section-header) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .shelf-heading > :global(.section-header > .link-arrow) {
+      align-self: flex-start;
+    }
+
+    .article-rail > :global(.article-card) {
+      flex-basis: 64%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .shelf-heading {
+      gap: 10px;
+      margin-bottom: 23px;
+    }
+
+    .shelf-controls {
+      gap: 7px;
+      padding-bottom: 1px;
+    }
+
+    .shelf-controls button {
+      width: 44px;
+      height: 44px;
+    }
+
+    .article-rail {
+      gap: 20px;
+      padding-bottom: 23px;
+    }
+
+    .article-rail > :global(.article-card) {
+      flex-basis: calc(100% - 25px);
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-shelf]').forEach((shelf) => {
+    const rail = shelf.querySelector<HTMLElement>('[data-shelf-rail]')!;
+    const buttons = shelf.querySelectorAll<HTMLButtonElement>('[data-shelf-move]');
+    const [previous, next] = buttons;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const update = () => {
+      previous.disabled = rail.scrollLeft < 2;
+      next.disabled = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2;
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const card = rail.querySelector<HTMLElement>('.article-card');
+        const gap = parseFloat(getComputedStyle(rail).columnGap) || 0;
+        rail.scrollBy({
+          left: Number(button.dataset.shelfMove) * ((card?.offsetWidth ?? rail.clientWidth) + gap),
+          behavior: reducedMotion.matches ? 'instant' : 'smooth',
+        });
+      });
+    });
+
+    rail.addEventListener('scroll', update, { passive: true });
+    new ResizeObserver(update).observe(rail);
+    update();
+  });
+</script>
