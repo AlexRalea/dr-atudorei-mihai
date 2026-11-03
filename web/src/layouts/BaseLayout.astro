@@ -37,6 +37,10 @@ const seo = Astro.props;
     <MobileBar />
 
     <script>
+      import { enhanceButtons } from '../scripts/ink-buttons';
+
+      enhanceButtons();
+
       const root = document.documentElement;
 
       // Elementele marcate cu data-reveal apar lin la scroll.
