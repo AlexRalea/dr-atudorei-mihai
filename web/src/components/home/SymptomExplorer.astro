@@ -167,12 +167,6 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
     font-weight: 480;
     letter-spacing: -0.5px;
     line-height: 1.35;
-    transition: font-size var(--motion-medium) var(--ease);
-  }
-
-  /* Cardurile închise de lângă cel deschis devin mai mici. */
-  .symptom-choices:has(.is-selected) .symptom-choice:not(.is-selected) .symptom-title {
-    font-size: 1.0625rem;
   }
 
   .symptom-heading > .icon {
@@ -562,8 +556,7 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
       padding: 0 21px;
     }
 
-    .symptom-title,
-    .symptom-choices:has(.is-selected) .symptom-choice:not(.is-selected) .symptom-title {
+    .symptom-title {
       font-size: 1.375rem;
     }
 
