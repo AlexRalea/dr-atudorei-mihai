@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import { serviceArt } from '../../lib/illustrations';
 import { routes } from '../../lib/routes';
 import type { Service } from '../../lib/types';
 import Icon from '../Icon.astro';
@@ -10,6 +12,7 @@ interface Props {
 }
 
 const { services } = Astro.props;
+const sketches = services.map((service) => serviceArt(service.slug));
 ---
 
 <div class="service-workbench" style={`--service-count: ${services.length}`} data-services>
@@ -40,8 +43,21 @@ const { services } = Astro.props;
           <InkDivider class="service-divider" variant={index} />
         </h3>
         <div class="service-panel" id={`service-panel-${index}`} role="region" aria-labelledby={`service-trigger-${index}`}>
+          {sketches[index] && (
+            <div class="service-panel-sketch" aria-hidden="true">
+              <Image
+                src={sketches[index]}
+                alt=""
+                widths={[300, 600]}
+                sizes="(max-width: 640px) 170px, 300px"
+                quality={55}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          )}
           <div class="service-panel-inner">
-            <InkFlourish class="service-panel-art" variant="right" />
+            {!sketches[index] && <InkFlourish class="service-panel-art" variant="right" />}
             <div class="service-panel-heading">
               <span>{String(index + 1).padStart(2, '0')}</span>
               <h4>{service.title}</h4>
@@ -213,6 +229,29 @@ const { services } = Astro.props;
     width: 280px;
     height: 330px;
     opacity: 0.27;
+  }
+
+  /* Schița serviciului, estompată în colțul din dreapta-jos al panoului. */
+  .service-panel-sketch {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 300px;
+    height: 300px;
+    opacity: 0.4;
+    pointer-events: none;
+    mask-image: radial-gradient(circle at 100% 100%, #000 35%, transparent 75%);
+  }
+
+  .service-panel-sketch img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 100% 100%;
+  }
+
+  .service-panel-inner {
+    z-index: 1;
   }
 
   .service-panel-heading {
@@ -395,6 +434,12 @@ const { services } = Astro.props;
 
     .service-panel-art {
       display: none;
+    }
+
+    .service-panel-sketch {
+      width: 170px;
+      height: 170px;
+      opacity: 0.3;
     }
   }
 
