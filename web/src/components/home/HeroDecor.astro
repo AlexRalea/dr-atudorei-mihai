@@ -6,57 +6,80 @@
 
 type Point = [number, number];
 
-/** Contur de os: o capsulă între a și b, cu capetele rotunjite. */
-function bone(a: Point, b: Point, radius: number) {
+/**
+ * Contur de os între a și b: capete rotunjite (rA la bază, rB la vârf) și mijlocul subțiat (waist),
+ * ca oasele lungi din planșele anatomice.
+ */
+function bone(a: Point, b: Point, rA: number, rB: number, waist: number) {
   const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-  const nx = ((b[1] - a[1]) / length) * radius;
-  const ny = (-(b[0] - a[0]) / length) * radius;
-  const p = (x: number, y: number) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+  const n: Point = [(b[1] - a[1]) / length, -(b[0] - a[0]) / length];
+  const mid: Point = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const at = (origin: Point, side: number, r: number): Point => [origin[0] + n[0] * r * side, origin[1] + n[1] * r * side];
+  // Controlul curbei pătratice astfel încât latura să treacă prin „talie” la mijloc.
+  const control = (from: Point, through: Point, to: Point): Point => [
+    (4 * through[0] - from[0] - to[0]) / 2,
+    (4 * through[1] - from[1] - to[1]) / 2,
+  ];
+  const p = ([x, y]: Point) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+
+  const a1 = at(a, 1, rA);
+  const b1 = at(b, 1, rB);
+  const b2 = at(b, -1, rB);
+  const a2 = at(a, -1, rA);
   return [
-    `M${p(a[0] + nx, a[1] + ny)}`,
-    `L${p(b[0] + nx, b[1] + ny)}`,
-    `A${radius} ${radius} 0 0 1 ${p(b[0] - nx, b[1] - ny)}`,
-    `L${p(a[0] - nx, a[1] - ny)}`,
-    `A${radius} ${radius} 0 0 1 ${p(a[0] + nx, a[1] + ny)}Z`,
+    `M${p(a1)}`,
+    `Q${p(control(a1, at(mid, 1, waist), b1))} ${p(b1)}`,
+    `A${rB} ${rB} 0 0 1 ${p(b2)}`,
+    `Q${p(control(b2, at(mid, -1, waist), a2))} ${p(a2)}`,
+    `A${rA} ${rA} 0 0 1 ${p(a1)}Z`,
   ].join('');
 }
 
+/** Dimensiunile oaselor unui deget, de la metacarpian spre vârf: [rază bază, rază vârf, talie]. */
+const fingerShape: [number, number, number][] = [
+  [5.6, 5.2, 3],
+  [5, 4.3, 2.8],
+  [4.3, 3.7, 2.5],
+  [3.7, 2.2, 2],
+];
+
 /** Un deget: metacarpianul și falangele, ușor răsfirate spre vârf. */
-function ray(base: Point, angle: number, spread: number, lengths: number[], radii: number[]) {
+function ray(base: Point, angle: number, spread: number, lengths: number[], shape = fingerShape) {
   const paths: string[] = [];
   let start = base;
   lengths.forEach((length, i) => {
     const direction = ((angle + spread * i) * Math.PI) / 180;
     const end: Point = [start[0] + Math.sin(direction) * length, start[1] - Math.cos(direction) * length];
-    paths.push(bone(start, end, radii[i]));
-    const gap = 3.5;
+    const [rA, rB, waist] = shape[i];
+    paths.push(bone(start, end, rA, rB, waist));
+    const gap = 4;
     start = [end[0] + Math.sin(direction) * gap, end[1] - Math.cos(direction) * gap];
   });
   return paths;
 }
 
 const handBones = [
-  // Radiusul și ulna
-  bone([108, 338], [112, 268], 9),
-  bone([150, 338], [148, 272], 7),
-  // Degetul mare și celelalte patru degete
-  ...ray([96, 228], -48, -6, [40, 30, 22], [5, 4.5, 3.8]),
-  ...ray([110, 214], -11, -2, [58, 37, 23, 16], [5, 4.5, 4, 3.4]),
-  ...ray([127, 210], -1, 0, [61, 41, 26, 17], [5, 4.6, 4, 3.4]),
-  ...ray([144, 212], 8, 2, [57, 38, 24, 16], [4.8, 4.4, 3.8, 3.2]),
-  ...ray([158, 219], 17, 4, [50, 30, 19, 14], [4.5, 4, 3.5, 3]),
+  // Radiusul și ulna, mai late spre încheietură.
+  bone([110, 352], [113, 264], 6, 12, 7),
+  bone([153, 352], [151, 270], 5, 8, 4.5),
+  // Degetul mare are doar două falange.
+  ...ray([90, 226], -46, -7, [38, 28, 20], [fingerShape[0], fingerShape[1], fingerShape[3]]),
+  ...ray([107, 215], -10, -2, [58, 36, 22, 16]),
+  ...ray([125, 212], 0, 0, [62, 40, 25, 17]),
+  ...ray([142, 214], 9, 2, [57, 37, 23, 16]),
+  ...ray([157, 221], 18, 4, [49, 29, 18, 14]),
 ];
 
-// Oasele carpiene: două rânduri de pietricele rotunjite.
-const carpals = [
-  [104, 247, 9, 8],
-  [123, 249, 9, 8],
-  [141, 248, 8, 8],
-  [157, 245, 7, 7],
-  [101, 228, 8, 7],
-  [118, 230, 9, 8],
-  [137, 229, 9, 8],
-  [155, 228, 8, 8],
+// Oasele carpiene: opt pietricele de mărimi și orientări diferite, pe două rânduri.
+const carpals: [number, number, number, number, number][] = [
+  [101, 248, 10, 7, -28],
+  [119, 251, 8, 7, 0],
+  [136, 249, 7.5, 6.5, 12],
+  [150, 242, 4.5, 4.5, 0],
+  [94, 232, 8, 6.5, -40],
+  [108, 228, 6.5, 6, -10],
+  [124, 230, 7, 9, 0],
+  [141, 230, 8, 8, 18],
 ];
 ---
 
@@ -73,11 +96,11 @@ const carpals = [
       ></path>
     </svg>
 
-    <svg class="decor decor-bones" viewBox="0 0 260 345" fill="none" focusable="false">
+    <svg class="decor decor-bones" viewBox="0 0 260 360" fill="none" focusable="false">
       {handBones.map((d) => <path class="ink-stroke" pathLength="1" d={d} />)}
       {
-        carpals.map(([cx, cy, rx, ry]) => (
-          <ellipse class="ink-stroke" pathLength="1" cx={cx} cy={cy} rx={rx} ry={ry} />
+        carpals.map(([cx, cy, rx, ry, angle]) => (
+          <ellipse class="ink-stroke" pathLength="1" cx={cx} cy={cy} rx={rx} ry={ry} transform={`rotate(${angle} ${cx} ${cy})`} />
         ))
       }
     </svg>
