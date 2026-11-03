@@ -134,7 +134,16 @@ export interface ServiceStep {
   text: string;
 }
 
-export type ServiceIcon = 'stethoscope' | 'activity' | 'hand' | 'scissors' | 'bone' | 'syringe' | 'heart-pulse';
+export type ServiceIcon =
+  | 'stethoscope'
+  | 'activity'
+  | 'spline'
+  | 'fingerprint'
+  | 'hand'
+  | 'scissors'
+  | 'bone'
+  | 'syringe'
+  | 'heart-pulse';
 
 export interface Service {
   title: string;

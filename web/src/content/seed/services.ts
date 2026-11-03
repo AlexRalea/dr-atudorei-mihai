@@ -96,7 +96,7 @@ export const services: Service[] = [
     ...base,
     title: 'Chirurgia tendoanelor',
     slug: 'chirurgia-tendoanelor',
-    icon: 'hand',
+    icon: 'spline',
     summary:
       'Tratamentul degetului în resort și al tenosinovitei De Quervain și repararea tendoanelor secționate sau rupte.',
     overview: md`
@@ -133,7 +133,7 @@ export const services: Service[] = [
     ...base,
     title: 'Tratamentul bolii Dupuytren',
     slug: 'tratamentul-bolii-dupuytren',
-    icon: 'hand',
+    icon: 'fingerprint',
     summary:
       'Opțiuni pentru corectarea degetelor îndoite în boala Dupuytren, de la fasciotomia cu ac la îndepărtarea chirurgicală a țesutului bolnav.',
     overview: md`

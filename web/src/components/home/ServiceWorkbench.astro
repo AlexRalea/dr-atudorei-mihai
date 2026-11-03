@@ -32,7 +32,7 @@ const sketches = services.map((service) => serviceArt(service.slug));
             aria-controls={`service-panel-${index}`}
           >
             <span class="service-icon">
-              <Icon name={service.icon ?? 'hand'} size={22} strokeWidth={1.5} />
+              <Icon name={service.icon ?? 'stethoscope'} size={22} strokeWidth={1.5} />
             </span>
             <span class="service-name"><span class="service-label">{service.title}</span></span>
             <span class="service-state">

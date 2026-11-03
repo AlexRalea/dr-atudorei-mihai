@@ -105,6 +105,8 @@ export const serviceType = defineType({
         list: [
           { title: 'Stetoscop', value: 'stethoscope' },
           { title: 'Puls / nervi', value: 'activity' },
+          { title: 'Tendon (curbă)', value: 'spline' },
+          { title: 'Amprentă', value: 'fingerprint' },
           { title: 'Mână', value: 'hand' },
           { title: 'Foarfecă', value: 'scissors' },
           { title: 'Os', value: 'bone' },
@@ -112,7 +114,7 @@ export const serviceType = defineType({
           { title: 'Inimă', value: 'heart-pulse' },
         ],
       },
-      initialValue: 'hand',
+      initialValue: 'stethoscope',
     }),
     defineField({
       name: 'summary',
