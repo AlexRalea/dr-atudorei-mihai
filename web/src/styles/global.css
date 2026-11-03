@@ -433,7 +433,7 @@ button {
   gap: 7px;
 }
 
-/* Butoane „trase de mână” (vezi scripts/ink-buttons.ts): forma butonului devine un desen SVG
+/* Butoane „trase de mână” (vezi scripts/ink-shapes.ts): forma butonului devine un desen SVG
    cu margini ondulate, care curg încet și se netezesc la hover. */
 .btn.has-ink {
   border-color: transparent;
@@ -473,6 +473,28 @@ button {
 .btn-transparent:hover .btn-ink-fill,
 .btn-secondary:hover .btn-ink-fill {
   filter: none;
+}
+
+/* Forme ondulate generale (data-ink-shape): un contur sau o pată plină, desenate tot de ink-shapes.ts. */
+.ink-shape {
+  position: absolute;
+  top: -14px;
+  left: -14px;
+  width: calc(100% + 28px);
+  max-width: none;
+  height: calc(100% + 28px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ink-shape-line {
+  fill: none;
+  stroke: var(--ink-shape-stroke, var(--color-dusty));
+  stroke-width: 1.1;
+}
+
+.ink-shape-fill {
+  fill: var(--ink-shape-fill, var(--color-dusty-soft));
 }
 
 /* Link text cu săgeată; linia de sub el se desenează la hover. */

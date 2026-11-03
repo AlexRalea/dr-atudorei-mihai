@@ -1,23 +1,72 @@
 /**
- * Butoane „trase de mână”: forma butonului e desenată ca liniile ondulate din secțiuni.
- * Marginile sunt unde line care curg încet; la apariție forma se liniștește din unde mai mari,
- * iar la hover undele se netezesc până la pastila obișnuită. Forma se calculează pentru dimensiunea
- * reală a butonului, deci nu se deformează. Fără JavaScript, butoanele rămân pastile obișnuite.
+ * Forme „trase de mână”: contururi cu margini ondulate care curg încet, desenate în SVG
+ * pentru dimensiunea reală a elementului (deci nu se deformează).
+ *
+ * - Butoanele (.btn) primesc un fundal ondulat; la hover undele se netezesc până la pastila obișnuită.
+ * - Elementele cu data-ink-shape="line" sau "fill" primesc un contur, respectiv o pată plină.
+ *   Un eveniment „ink:ripple” trimis elementului le agită scurt, apoi se liniștesc.
+ *
+ * Fără JavaScript, elementele își păstrează aspectul din CSS.
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const PAD = 14;
 const STEP = 7;
 
-/** Amplitudinea undelor (px) și viteza cu care curg (radiani pe secundă). */
-const REST = { amplitude: 2.1, speed: 0.7 };
-// La hover undele dispar: butonul revine lin la pastila obișnuită.
-const HOVER = { amplitude: 0, speed: REST.speed };
-const ENTRY_AMPLITUDE = 5.5;
-
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 type Point = [number, number];
+
+interface Motion {
+  /** Amplitudinea undelor, în px. */
+  amplitude: number;
+  /** Viteza cu care curg undele, în radiani pe secundă. */
+  speed: number;
+}
+
+interface ShapeKind {
+  svgClass: string;
+  pathClass: string;
+  rest: Motion;
+  /** Starea de hover, doar pentru butoane. */
+  hover?: Motion;
+  /** Amplitudinea de la apariție și de la „ripple”, din care forma se liniștește. */
+  entry: number;
+  /** Lungimile de undă (px) ale celor două valuri care se suprapun. */
+  waves: [number, number];
+  /** Cât de neregulată e forma de bază (o singură umflătură pe tot conturul). */
+  irregularity: number;
+}
+
+const BUTTON: ShapeKind = {
+  svgClass: 'btn-ink',
+  pathClass: 'btn-ink-fill',
+  rest: { amplitude: 2.1, speed: 0.7 },
+  // La hover undele dispar: butonul revine lin la pastila obișnuită.
+  hover: { amplitude: 0, speed: 0.7 },
+  entry: 5.5,
+  waves: [95, 48],
+  irregularity: 0.35,
+};
+
+const KINDS: Record<string, ShapeKind> = {
+  line: {
+    svgClass: 'ink-shape',
+    pathClass: 'ink-shape-line',
+    rest: { amplitude: 2.2, speed: 0.5 },
+    entry: 7,
+    waves: [110, 55],
+    irregularity: 0.6,
+  },
+  fill: {
+    svgClass: 'ink-shape',
+    pathClass: 'ink-shape-fill',
+    rest: { amplitude: 3, speed: 0.4 },
+    entry: 8,
+    waves: [150, 70],
+    irregularity: 2.2,
+  },
+};
 
 function seededRandom(seed: number) {
   return () => {
@@ -34,7 +83,7 @@ function hash(text: string) {
   return h >>> 0;
 }
 
-/** Punct pe conturul unei pastile w × h, la distanța s de-a lungul conturului, cu normala spre exterior. */
+/** Punct pe conturul unei pastile w × h (un cerc când w = h), la distanța s, cu normala spre exterior. */
 function stadium(w: number, h: number, s: number) {
   const r = h / 2;
   const straight = Math.max(w - h, 0);
@@ -69,52 +118,64 @@ function smoothClosedPath(points: Point[]) {
   return `${d}Z`;
 }
 
-class InkButton {
-  readonly button: HTMLElement;
+class InkShape {
+  readonly element: HTMLElement;
+  private readonly kind: ShapeKind;
   private readonly path: SVGPathElement;
   private readonly svg: SVGSVGElement;
   private readonly phases: number[];
   private width = 0;
   private height = 0;
   private time = 0;
-  private amplitude = ENTRY_AMPLITUDE;
-  private speed = REST.speed;
-  private target = REST;
+  private amplitude: number;
+  private speed: number;
+  private target: Motion;
   private entering = true;
   visible = false;
 
-  constructor(button: HTMLElement, index: number) {
-    this.button = button;
-    const random = seededRandom(hash(button.textContent ?? '') + index);
+  constructor(element: HTMLElement, kind: ShapeKind, index: number) {
+    this.element = element;
+    this.kind = kind;
+    this.target = kind.rest;
+    this.speed = kind.rest.speed;
+    this.amplitude = reducedMotion.matches ? kind.rest.amplitude : kind.entry;
+
+    const random = seededRandom(hash(element.textContent ?? '') + index);
     this.phases = [random(), random(), random()].map((value) => value * Math.PI * 2);
 
     this.svg = document.createElementNS(SVG_NS, 'svg');
-    this.svg.classList.add('btn-ink');
+    this.svg.classList.add(kind.svgClass);
     this.svg.setAttribute('aria-hidden', 'true');
     this.svg.setAttribute('focusable', 'false');
     this.path = document.createElementNS(SVG_NS, 'path');
-    this.path.classList.add('btn-ink-fill');
+    this.path.classList.add(kind.pathClass);
     this.svg.append(this.path);
-    button.prepend(this.svg);
-    button.classList.add('has-ink');
+    element.prepend(this.svg);
+    element.classList.add('has-ink');
 
-    if (reducedMotion.matches) this.amplitude = REST.amplitude;
+    if (kind.hover) {
+      element.addEventListener('pointerenter', (event) => event.pointerType === 'mouse' && this.setHover(true));
+      element.addEventListener('pointerleave', (event) => event.pointerType === 'mouse' && this.setHover(false));
+      element.addEventListener('focus', () => element.matches(':focus-visible') && this.setHover(true));
+      element.addEventListener('blur', () => this.setHover(false));
+    }
 
-    button.addEventListener('pointerenter', (event) => event.pointerType === 'mouse' && this.setHover(true));
-    button.addEventListener('pointerleave', (event) => event.pointerType === 'mouse' && this.setHover(false));
-    button.addEventListener('focus', () => button.matches(':focus-visible') && this.setHover(true));
-    button.addEventListener('blur', () => this.setHover(false));
+    element.addEventListener('ink:ripple', () => {
+      if (reducedMotion.matches) return;
+      this.amplitude = kind.entry;
+      this.entering = true;
+    });
   }
 
   resize() {
-    this.width = this.button.offsetWidth;
-    this.height = this.button.offsetHeight;
+    this.width = this.element.offsetWidth;
+    this.height = this.element.offsetHeight;
     this.svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${this.width + PAD * 2} ${this.height + PAD * 2}`);
     this.render();
   }
 
-  setHover(active: boolean) {
-    this.target = active ? HOVER : REST;
+  private setHover(active: boolean) {
+    this.target = active && this.kind.hover ? this.kind.hover : this.kind.rest;
     this.entering = false;
     if (reducedMotion.matches) {
       this.amplitude = this.target.amplitude;
@@ -125,8 +186,8 @@ class InkButton {
   /** Avansează animația cu dt secunde: undele curg, iar amplitudinea și viteza tind lin spre starea dorită. */
   tick(dt: number) {
     // La apariție forma se liniștește încet; trecerile de hover sunt rapide.
-    if (this.entering && this.amplitude < REST.amplitude + 0.2) this.entering = false;
-    const duration = this.target === HOVER ? 0.05 : this.entering ? 0.45 : 0.09;
+    if (this.entering && this.amplitude < this.target.amplitude + 0.2) this.entering = false;
+    const duration = this.target === this.kind.hover ? 0.05 : this.entering ? 0.45 : 0.09;
     const ease = 1 - Math.exp(-dt / duration);
     this.amplitude += (this.target.amplitude - this.amplitude) * ease;
     this.speed += (this.target.speed - this.speed) * ease;
@@ -141,8 +202,8 @@ class InkButton {
     const perimeter = 2 * Math.max(w - h, 0) + Math.PI * h;
     const count = Math.max(24, Math.round(perimeter / STEP));
     // Lungimile de undă se aleg astfel încât conturul să se închidă fără ruptură.
-    const long = Math.max(2, Math.round(perimeter / 95));
-    const short = Math.max(3, Math.round(perimeter / 48));
+    const long = Math.max(2, Math.round(perimeter / this.kind.waves[0]));
+    const short = Math.max(3, Math.round(perimeter / this.kind.waves[1]));
     const [p0, p1, p2] = this.phases;
 
     const points: Point[] = [];
@@ -153,7 +214,7 @@ class InkButton {
       const wave =
         0.62 * Math.sin(long * u + p0 + this.time) +
         0.38 * Math.sin(short * u + p1 - this.time * 0.8) +
-        0.35 * Math.sin(u + p2);
+        this.kind.irregularity * Math.sin(u + p2 + this.time * 0.15);
       const offset = this.amplitude * wave;
       points.push([p.x + p.nx * offset, p.y + p.ny * offset]);
     }
@@ -161,28 +222,32 @@ class InkButton {
   }
 }
 
-export function enhanceButtons() {
-  const buttons = [...document.querySelectorAll<HTMLElement>('.btn:not(.btn-quiet)')].map(
-    (button, index) => new InkButton(button, index),
-  );
-  const byElement = new Map(buttons.map((ink) => [ink.button, ink]));
+export function enhanceInkShapes() {
+  const shapes = [
+    ...[...document.querySelectorAll<HTMLElement>('.btn:not(.btn-quiet)')].map((element) => ({ element, kind: BUTTON })),
+    ...[...document.querySelectorAll<HTMLElement>('[data-ink-shape]')]
+      .map((element) => ({ element, kind: KINDS[element.dataset.inkShape ?? ''] }))
+      .filter((shape) => shape.kind),
+  ].map(({ element, kind }, index) => new InkShape(element, kind, index));
+
+  const byElement = new Map(shapes.map((shape) => [shape.element, shape]));
 
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) byElement.get(entry.target as HTMLElement)?.resize();
   });
 
-  // Animăm doar butoanele vizibile; cele din afara ecranului stau pe loc.
+  // Animăm doar formele vizibile; cele din afara ecranului stau pe loc.
   const visibility = new IntersectionObserver((entries) => {
     for (const entry of entries) {
-      const ink = byElement.get(entry.target as HTMLElement);
-      if (ink) ink.visible = entry.isIntersecting;
+      const shape = byElement.get(entry.target as HTMLElement);
+      if (shape) shape.visible = entry.isIntersecting;
     }
     start();
   });
 
-  buttons.forEach((ink) => {
-    resizeObserver.observe(ink.button);
-    visibility.observe(ink.button);
+  shapes.forEach((shape) => {
+    resizeObserver.observe(shape.element);
+    visibility.observe(shape.element);
   });
 
   let frame = 0;
@@ -190,8 +255,8 @@ export function enhanceButtons() {
   const loop = (now: number) => {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    const active = buttons.filter((ink) => ink.visible);
-    active.forEach((ink) => ink.tick(dt));
+    const active = shapes.filter((shape) => shape.visible);
+    active.forEach((shape) => shape.tick(dt));
     frame = active.length ? requestAnimationFrame(loop) : 0;
   };
 
