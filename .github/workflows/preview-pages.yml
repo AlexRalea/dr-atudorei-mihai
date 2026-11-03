@@ -1,0 +1,58 @@
+# Previzualizarea site-ului pe GitHub Pages, pentru prezentarea către client.
+# Rulează doar pe branch-ul `preview`; `main` rămâne pentru hostingul de producție.
+# Pentru a actualiza previzualizarea: git checkout preview && git merge main && git push
+name: Previzualizare pe GitHub Pages
+
+on:
+  push:
+    branches: [preview]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # Site-ul stă într-un subfolder (ex. /dr-atudorei-mihai); linkurile primesc calea de bază.
+      - run: npm run build
+        env:
+          PUBLIC_SITE_URL: ${{ steps.pages.outputs.origin }}
+          PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
