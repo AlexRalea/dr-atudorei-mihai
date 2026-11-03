@@ -1,5 +1,7 @@
 ---
 import Breadcrumbs from './Breadcrumbs.astro';
+import InkFlourish from './ink/InkFlourish.astro';
+import InkUnderline from './ink/InkUnderline.astro';
 
 interface Props {
   title: string;
@@ -11,28 +13,27 @@ interface Props {
 const { title, intro, breadcrumbs, narrow = false } = Astro.props;
 ---
 
-<section class="page-hero">
+<section class="page-hero" data-ink>
+  <div class="page-hero-ornaments" aria-hidden="true">
+    <InkFlourish class="page-hero-flourish" variant="right" />
+  </div>
   <div class:list={['container', { 'container-narrow': narrow }]}>
     {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
     <div class="page-hero-body">
       <h1>{title}</h1>
+      <InkUnderline />
       {intro && <p class="lead">{intro}</p>}
       <slot />
     </div>
   </div>
-  <svg class="page-hero-shape" viewBox="0 0 600 400" aria-hidden="true">
-    <path
-      d="M420 30c90 10 170 80 170 170s-60 170-170 180-150-40-230-50S20 300 30 200 160 60 250 40s80-20 170-10Z"
-      fill="currentColor"></path>
-  </svg>
 </section>
 
 <style>
   .page-hero {
     position: relative;
-    overflow: hidden;
-    padding-block: clamp(1.25rem, 1rem + 1vw, 2rem) clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem);
-    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-sand-soft) 100%);
+    overflow: clip;
+    isolation: isolate;
+    padding-block: 28px 56px;
     border-bottom: 1px solid var(--color-line);
   }
 
@@ -41,30 +42,53 @@ const { title, intro, breadcrumbs, narrow = false } = Astro.props;
     z-index: 1;
   }
 
-  .page-hero-body {
-    max-width: 50rem;
-    margin-top: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+  .page-hero-ornaments {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
   }
 
-  .page-hero-body > * + * {
-    margin-top: 0.85rem;
+  .page-hero :global(.page-hero-flourish) {
+    position: absolute;
+    top: -40px;
+    right: max(-60px, calc((100% - var(--container)) / 2 - 140px));
+    width: 260px;
+    height: 350px;
+    opacity: 0.3;
+  }
+
+  .page-hero-body {
+    max-width: 50rem;
+    margin-top: 28px;
   }
 
   .page-hero h1 {
-    font-size: clamp(2.25rem, 1.7rem + 2.2vw, 3.5rem);
+    font-size: clamp(2.625rem, 1.9rem + 2.6vw, 3.75rem);
   }
 
   .page-hero .lead {
     max-width: 44rem;
+    margin-top: 20px;
   }
 
-  .page-hero-shape {
-    position: absolute;
-    right: -8%;
-    top: -30%;
-    width: min(46rem, 70vw);
-    color: var(--color-dusty-light);
-    opacity: 0.55;
-    pointer-events: none;
+  .page-hero-body > :global(:not(h1, .ink-underline, .lead)) {
+    margin-top: 12px;
+  }
+
+  @media (max-width: 950px) {
+    .page-hero :global(.page-hero-flourish) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .page-hero {
+      padding-block: 20px 40px;
+    }
+
+    .page-hero-body {
+      margin-top: 20px;
+    }
   }
 </style>

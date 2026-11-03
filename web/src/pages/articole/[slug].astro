@@ -120,7 +120,7 @@ const site = Astro.site!;
           <ul class="card-grid">
             {moreArticles.map((item, index) => (
               <li>
-                <ArticleCard article={item} delay={index * 60} />
+                <ArticleCard article={item} index={index + 1} delay={index * 60} />
               </li>
             ))}
           </ul>
@@ -192,11 +192,9 @@ const site = Astro.site!;
 
   .aside-title {
     margin-bottom: 0.75rem;
-    font-size: var(--text-sm);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+    font-weight: 550;
+    color: var(--color-navy);
   }
 
   .aside-related ul {

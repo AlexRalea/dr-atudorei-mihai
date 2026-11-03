@@ -12,12 +12,10 @@ const { service, delay = 0 } = Astro.props;
 ---
 
 <a href={routes.service(service.slug)} class="service-card" data-reveal style={`--reveal-delay: ${delay}ms`}>
-  <div class="service-head">
-    <span class="service-icon" aria-hidden="true">
-      <Icon name={service.icon ?? 'hand'} size={22} strokeWidth={1.6} />
-    </span>
-    <h3>{service.title}</h3>
-  </div>
+  <span class="service-icon" aria-hidden="true">
+    <Icon name={service.icon ?? 'hand'} size={22} strokeWidth={1.5} />
+  </span>
+  <h3>{service.title}</h3>
   <p>{service.summary}</p>
   <span class="link-arrow">
     Află mai multe
@@ -29,66 +27,63 @@ const { service, delay = 0 } = Astro.props;
   .service-card {
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
+    align-items: flex-start;
     height: 100%;
-    padding: 1.35rem 1.5rem 1.4rem;
+    padding: 28px 28px 20px;
     border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
+    background: var(--color-dusty-soft);
     transition:
-      transform 320ms var(--ease),
-      box-shadow 320ms var(--ease),
-      border-color 320ms var(--ease);
+      background var(--motion-medium),
+      box-shadow var(--motion-medium),
+      opacity var(--motion-slow) var(--ease),
+      transform var(--motion-slow) var(--ease);
   }
 
   .service-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--color-dusty);
-    box-shadow: var(--shadow);
-  }
-
-  .service-head {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
+    background: var(--color-dusty-light);
+    box-shadow: var(--shadow-soft);
   }
 
   .service-icon {
     display: grid;
-    flex-shrink: 0;
     place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 14px;
-    background: var(--color-dusty-light);
-    color: var(--color-dusty-deep);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-action);
     transition:
-      background-color 320ms var(--ease),
-      color 320ms var(--ease);
+      background var(--motion-medium),
+      color var(--motion-medium),
+      transform var(--motion-medium) var(--ease);
   }
 
   .service-card:hover .service-icon {
     background: var(--color-action);
-    color: #fff;
+    color: var(--color-surface);
+    transform: rotate(-7deg);
   }
 
   h3 {
-    font-size: 1.3125rem;
+    margin-top: 20px;
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 1.625rem;
+    font-weight: 480;
+    letter-spacing: -0.6px;
     line-height: 1.2;
+    text-wrap: balance;
   }
 
   p {
-    color: var(--color-text-muted);
+    margin-block: 14px 10px;
     font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--color-text-muted);
   }
 
   .link-arrow {
     margin-top: auto;
-    padding-top: 0.25rem;
-  }
-
-  .service-card:hover .link-arrow {
-    gap: 0.7rem;
-    color: var(--color-navy);
+    color: var(--color-action-hover);
   }
 </style>
