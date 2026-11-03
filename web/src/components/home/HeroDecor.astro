@@ -1,86 +1,12 @@
 ---
-/**
- * Ornamente în linie pentru fundalul hero-ului: oasele mâinii, un ac cu fir de sutură și un bisturiu,
- * desenate în același stil ca restul liniilor din pagină. Se trasează o singură dată, la încărcare.
- */
-
-type Point = [number, number];
+import { Image } from 'astro:assets';
+import bonesSketch from '../../assets/decor/oasele-mainii-schita.webp';
 
 /**
- * Contur de os între a și b: capete rotunjite (rA la bază, rB la vârf) și mijlocul subțiat (waist),
- * ca oasele lungi din planșele anatomice.
+ * Ornamente pentru fundalul hero-ului: o schiță anatomică a oaselor mâinii, un ac cu fir de sutură
+ * și un bisturiu desenate în linie. Liniile se trasează o singură dată, la încărcare,
+ * iar schița se dezvăluie de jos în sus.
  */
-function bone(a: Point, b: Point, rA: number, rB: number, waist: number) {
-  const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-  const n: Point = [(b[1] - a[1]) / length, -(b[0] - a[0]) / length];
-  const mid: Point = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-  const at = (origin: Point, side: number, r: number): Point => [origin[0] + n[0] * r * side, origin[1] + n[1] * r * side];
-  // Controlul curbei pătratice astfel încât latura să treacă prin „talie” la mijloc.
-  const control = (from: Point, through: Point, to: Point): Point => [
-    (4 * through[0] - from[0] - to[0]) / 2,
-    (4 * through[1] - from[1] - to[1]) / 2,
-  ];
-  const p = ([x, y]: Point) => `${x.toFixed(1)} ${y.toFixed(1)}`;
-
-  const a1 = at(a, 1, rA);
-  const b1 = at(b, 1, rB);
-  const b2 = at(b, -1, rB);
-  const a2 = at(a, -1, rA);
-  return [
-    `M${p(a1)}`,
-    `Q${p(control(a1, at(mid, 1, waist), b1))} ${p(b1)}`,
-    `A${rB} ${rB} 0 0 1 ${p(b2)}`,
-    `Q${p(control(b2, at(mid, -1, waist), a2))} ${p(a2)}`,
-    `A${rA} ${rA} 0 0 1 ${p(a1)}Z`,
-  ].join('');
-}
-
-/** Dimensiunile oaselor unui deget, de la metacarpian spre vârf: [rază bază, rază vârf, talie]. */
-const fingerShape: [number, number, number][] = [
-  [5.6, 5.2, 3],
-  [5, 4.3, 2.8],
-  [4.3, 3.7, 2.5],
-  [3.7, 2.2, 2],
-];
-
-/** Un deget: metacarpianul și falangele, ușor răsfirate spre vârf. */
-function ray(base: Point, angle: number, spread: number, lengths: number[], shape = fingerShape) {
-  const paths: string[] = [];
-  let start = base;
-  lengths.forEach((length, i) => {
-    const direction = ((angle + spread * i) * Math.PI) / 180;
-    const end: Point = [start[0] + Math.sin(direction) * length, start[1] - Math.cos(direction) * length];
-    const [rA, rB, waist] = shape[i];
-    paths.push(bone(start, end, rA, rB, waist));
-    const gap = 4;
-    start = [end[0] + Math.sin(direction) * gap, end[1] - Math.cos(direction) * gap];
-  });
-  return paths;
-}
-
-const handBones = [
-  // Radiusul și ulna, mai late spre încheietură.
-  bone([110, 352], [113, 264], 6, 12, 7),
-  bone([153, 352], [151, 270], 5, 8, 4.5),
-  // Degetul mare are doar două falange.
-  ...ray([90, 226], -46, -7, [38, 28, 20], [fingerShape[0], fingerShape[1], fingerShape[3]]),
-  ...ray([107, 215], -10, -2, [58, 36, 22, 16]),
-  ...ray([125, 212], 0, 0, [62, 40, 25, 17]),
-  ...ray([142, 214], 9, 2, [57, 37, 23, 16]),
-  ...ray([157, 221], 18, 4, [49, 29, 18, 14]),
-];
-
-// Oasele carpiene: opt pietricele de mărimi și orientări diferite, pe două rânduri.
-const carpals: [number, number, number, number, number][] = [
-  [101, 248, 10, 7, -28],
-  [119, 251, 8, 7, 0],
-  [136, 249, 7.5, 6.5, 12],
-  [150, 242, 4.5, 4.5, 0],
-  [94, 232, 8, 6.5, -40],
-  [108, 228, 6.5, 6, -10],
-  [124, 230, 7, 9, 0],
-  [141, 230, 8, 8, 18],
-];
 ---
 
 <div class="hero-decor" aria-hidden="true" data-ink>
@@ -96,14 +22,9 @@ const carpals: [number, number, number, number, number][] = [
       ></path>
     </svg>
 
-    <svg class="decor decor-bones" viewBox="0 0 260 360" fill="none" focusable="false">
-      {handBones.map((d) => <path class="ink-stroke" pathLength="1" d={d} />)}
-      {
-        carpals.map(([cx, cy, rx, ry, angle]) => (
-          <ellipse class="ink-stroke" pathLength="1" cx={cx} cy={cy} rx={rx} ry={ry} transform={`rotate(${angle} ${cx} ${cy})`} />
-        ))
-      }
-    </svg>
+    <div class="decor decor-bones">
+      <Image src={bonesSketch} alt="" widths={[200, 400]} sizes="200px" loading="eager" decoding="async" fetchpriority="low" />
+    </div>
 
     <svg class="decor decor-scalpel" viewBox="0 0 260 80" fill="none" focusable="false">
       <path class="ink-stroke" pathLength="1" d="M74 34L238 29C250 29 254 35 254 40C254 45 250 51 238 51L74 46"></path>
@@ -136,6 +57,11 @@ const carpals: [number, number, number, number, number][] = [
     rotate: var(--rotate);
   }
 
+  .decor-bones :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
   .decor :global(.ink-echo) {
     opacity: 0.45;
   }
@@ -143,11 +69,11 @@ const carpals: [number, number, number, number, number][] = [
   /* Trei forme așezate în triunghi pe toată suprafața hero-ului:
      oasele mâinii jos în stânga, firul de sutură sus la mijloc, bisturiul jos în dreapta. */
   .decor-bones {
-    --rotate: -18deg;
-    --opacity: 0.3;
-    left: max(-10px, calc(50% - 760px));
-    bottom: -45px;
-    width: 180px;
+    --rotate: -16deg;
+    --opacity: 0.32;
+    left: max(-20px, calc(50% - 770px));
+    bottom: -110px;
+    width: 200px;
   }
 
   .decor-suture {
@@ -171,8 +97,17 @@ const carpals: [number, number, number, number, number][] = [
       animation: ink-draw 2200ms var(--ease) 300ms both;
     }
 
-    [data-lines-revealed] .decor-bones :global(.ink-stroke) {
-      animation-delay: 550ms;
+    [data-lines-revealed] .decor-bones :global(img) {
+      animation: sketch-reveal 2400ms var(--ease) 500ms both;
+    }
+
+    @keyframes sketch-reveal {
+      from {
+        clip-path: inset(100% 0 0 0);
+      }
+      to {
+        clip-path: inset(0 0 0 0);
+      }
     }
 
     [data-lines-revealed] .decor-scalpel :global(.ink-stroke) {
@@ -191,7 +126,7 @@ const carpals: [number, number, number, number, number][] = [
     }
 
     .decor-bones {
-      width: 150px;
+      width: 165px;
     }
 
     .decor-scalpel {
@@ -212,7 +147,7 @@ const carpals: [number, number, number, number, number][] = [
     .decor-bones {
       --opacity: 0.24;
       left: -40px;
-      bottom: -70px;
+      bottom: -110px;
       width: 150px;
     }
 
