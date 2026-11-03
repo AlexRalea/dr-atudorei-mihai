@@ -103,8 +103,6 @@ const carpals = [
   .decor-frame {
     position: relative;
     height: 100%;
-    max-width: calc(var(--container) + var(--gutter) * 2);
-    margin-inline: auto;
   }
 
   .decor {
@@ -119,31 +117,30 @@ const carpals = [
     opacity: 0.45;
   }
 
-  /* Firul de sutură leagă textul de portret, ca liniile desenate din restul paginii. */
+  /* Trei forme așezate în triunghi pe toată suprafața hero-ului:
+     oasele mâinii jos în stânga, firul de sutură sus la mijloc, bisturiul jos în dreapta. */
+  .decor-bones {
+    --rotate: -18deg;
+    --opacity: 0.3;
+    left: max(-10px, calc(50% - 760px));
+    bottom: -45px;
+    width: 180px;
+  }
+
   .decor-suture {
     --rotate: 6deg;
-    --opacity: 0.42;
-    left: 47%;
-    top: -40px;
-    width: 250px;
+    --opacity: 0.4;
+    left: 44%;
+    top: -50px;
+    width: 230px;
   }
 
-  /* Oasele mâinii se ivesc de jos, sub fir. */
-  .decor-bones {
-    --rotate: 24deg;
-    --opacity: 0.32;
-    left: 51%;
-    bottom: -70px;
-    width: 190px;
-  }
-
-  /* Bisturiul, pe marginea din dreapta, lângă portret. */
   .decor-scalpel {
-    --rotate: 72deg;
+    --rotate: -24deg;
     --opacity: 0.38;
-    right: -70px;
-    bottom: 150px;
-    width: 190px;
+    right: max(-40px, calc(50% - 760px));
+    bottom: 18px;
+    width: 200px;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -164,21 +161,19 @@ const carpals = [
     }
   }
 
-  @media (max-width: 1200px) {
-    .decor-scalpel {
-      display: none;
-    }
-  }
-
   @media (max-width: 950px) {
     .decor-suture {
-      left: 43%;
-      width: 210px;
+      left: 40%;
+      width: 200px;
     }
 
     .decor-bones {
-      left: 46%;
-      width: 160px;
+      width: 150px;
+    }
+
+    .decor-scalpel {
+      width: 170px;
+      bottom: 8px;
     }
   }
 
@@ -195,6 +190,13 @@ const carpals = [
       --opacity: 0.24;
       left: -40px;
       bottom: -70px;
+      width: 150px;
+    }
+
+    .decor-scalpel {
+      --opacity: 0.28;
+      right: -50px;
+      bottom: 300px;
       width: 150px;
     }
   }
