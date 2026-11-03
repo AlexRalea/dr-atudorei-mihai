@@ -4,7 +4,6 @@ import { flowLinePath } from '../lib/flow-lines';
 import { telHref } from '../lib/format';
 import { routes } from '../lib/routes';
 import Icon from './Icon.astro';
-import HandArt from './ink/HandArt.astro';
 
 interface Props {
   title?: string;
@@ -33,9 +32,6 @@ const lines = Array.from({ length: LINES }, (_, index) => flowLinePath(index, LI
       <svg class="cta-lines" viewBox="0 0 1200 320" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         {lines.map((d, index) => <path class="cta-line" pathLength="1" d={d} style={`--i: ${index}`} />)}
       </svg>
-      <div class="cta-decoration" aria-hidden="true">
-        <HandArt />
-      </div>
       <div class="cta-text">
         <h2>
           {firstLine}
@@ -141,20 +137,6 @@ const lines = Array.from({ length: LINES }, (_, index) => flowLinePath(index, LI
     min-width: 270px;
   }
 
-  .cta-decoration {
-    position: absolute;
-    right: 110px;
-    bottom: -200px;
-    width: 430px;
-    height: 490px;
-    transform: rotate(25deg);
-    opacity: 0.1;
-  }
-
-  .cta-decoration :global(.hand-art) {
-    color: var(--color-surface);
-  }
-
   @media (max-width: 950px) {
     .cta-band {
       gap: 30px;
@@ -202,12 +184,6 @@ const lines = Array.from({ length: LINES }, (_, index) => flowLinePath(index, LI
       font-size: 0.9375rem;
     }
 
-    .cta-decoration {
-      right: -70px;
-      bottom: -70px;
-      width: 300px;
-      height: 400px;
-    }
   }
 </style>
 

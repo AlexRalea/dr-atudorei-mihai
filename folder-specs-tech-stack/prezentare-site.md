@@ -1,9 +1,3 @@
-# Site-ul dumneavoastră, pe scurt
-
-## Costuri
-
-Singurul cost este **domeniul .ro: aproximativ 8–10 € pe an**. Găzduirea, panoul de administrare și formularul de programare sunt gratuite.
-
 ## Domeniul .ro
 
 Se cumpără pe numele dumneavoastră, de la unul dintre:
