@@ -55,6 +55,10 @@ const title = 'Informații utile pentru pacienți';
     gap: 9px;
   }
 
+  .shelf-controls[hidden] {
+    display: none;
+  }
+
   :global(html:not(.js)) .shelf-controls {
     display: none;
   }
@@ -149,9 +153,13 @@ const title = 'Informații utile pentru pacienți';
     const [previous, next] = buttons;
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
+    const controls = shelf.querySelector<HTMLElement>('.shelf-controls')!;
+
     const update = () => {
       previous.disabled = rail.scrollLeft < 2;
       next.disabled = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2;
+      // Când toate articolele încap pe ecran, săgețile nu au ce face.
+      controls.hidden = previous.disabled && next.disabled;
     };
 
     buttons.forEach((button) => {
