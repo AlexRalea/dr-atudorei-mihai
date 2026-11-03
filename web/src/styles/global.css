@@ -342,8 +342,6 @@ button {
   --btn-bg: var(--color-action);
   --btn-fg: var(--color-surface);
   --btn-border: transparent;
-  --btn-ink: var(--color-action);
-  --btn-ink-opacity: 0.55;
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -401,7 +399,6 @@ button {
   --btn-bg: transparent;
   --btn-fg: var(--color-action);
   --btn-border: var(--color-dusty);
-  --btn-ink: var(--color-dusty);
 }
 
 .btn-secondary:hover {
@@ -412,8 +409,6 @@ button {
 .btn-light {
   --btn-bg: var(--color-surface);
   --btn-fg: var(--color-action);
-  --btn-ink: var(--color-dusty-light);
-  --btn-ink-opacity: 0.5;
 }
 
 .btn-light:hover {
@@ -425,8 +420,6 @@ button {
   --btn-bg: transparent;
   --btn-fg: var(--color-surface);
   --btn-border: var(--color-dusty);
-  --btn-ink: var(--color-surface);
-  --btn-ink-opacity: 0.3;
 }
 
 .btn-transparent:hover {
@@ -440,8 +433,8 @@ button {
   gap: 7px;
 }
 
-/* Butoane „trase de mână” (vezi scripts/ink-buttons.ts): fundalul și conturul devin un desen SVG,
-   iar în jur apare o linie de cerneală care se trasează când butonul intră în ecran. */
+/* Butoane „trase de mână” (vezi scripts/ink-buttons.ts): forma butonului devine un desen SVG
+   cu margini ondulate, care curg încet și se agită mai tare la hover. */
 .btn.has-ink {
   border-color: transparent;
   background: transparent;
@@ -480,34 +473,6 @@ button {
 .btn-transparent:hover .btn-ink-fill,
 .btn-secondary:hover .btn-ink-fill {
   filter: none;
-}
-
-.btn-ink-line {
-  fill: none;
-  stroke: var(--btn-ink);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: var(--btn-ink-opacity);
-  transition: opacity var(--motion-medium);
-}
-
-.btn:hover .btn-ink-line {
-  opacity: calc(var(--btn-ink-opacity) + 0.25);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .btn-ink-line {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    transition:
-      stroke-dashoffset 1100ms var(--ease) 150ms,
-      opacity var(--motion-medium);
-  }
-
-  .btn.is-drawn .btn-ink-line {
-    stroke-dashoffset: 0;
-  }
 }
 
 /* Link text cu săgeată; linia de sub el se desenează la hover. */

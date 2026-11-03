@@ -1,18 +1,21 @@
 /**
- * Butoane „trase de mână”: fiecare buton primește un fundal cu contur ușor neregulat și o linie
- * de cerneală care îl înconjoară, cu capetele suprapuse, în stilul ornamentelor din secțiuni.
- * Forma se calculează pentru dimensiunea reală a butonului, deci nu se deformează.
- * Fără JavaScript, butoanele rămân pastilele obișnuite.
+ * Butoane „trase de mână”: forma butonului e desenată ca liniile ondulate din secțiuni.
+ * Marginile sunt unde line care curg încet; la apariție forma se liniștește din unde mai mari,
+ * iar la hover undele cresc și se mișcă mai repede. Forma se calculează pentru dimensiunea
+ * reală a butonului, deci nu se deformează. Fără JavaScript, butoanele rămân pastile obișnuite.
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const PAD = 14;
-const HARMONICS = [2, 3, 5];
-const WEIGHTS = [0.55, 0.3, 0.15];
+const STEP = 7;
+
+/** Amplitudinea undelor (px) și viteza cu care curg (radiani pe secundă). */
+const REST = { amplitude: 2.1, speed: 0.7 };
+const HOVER = { amplitude: 3.4, speed: 2.6 };
+const ENTRY_AMPLITUDE = 5.5;
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-type Phases = number[];
 type Point = [number, number];
 
 function seededRandom(seed: number) {
@@ -30,17 +33,11 @@ function hash(text: string) {
   return h >>> 0;
 }
 
-/** Abatere lină și periodică de la contur; t ∈ [0, 1] parcurge o dată conturul. */
-function wave(t: number, phases: Phases) {
-  return HARMONICS.reduce((sum, harmonic, i) => sum + WEIGHTS[i] * Math.sin(2 * Math.PI * harmonic * t + phases[i]), 0);
-}
-
-/** Punct pe conturul unei pastile w × h și normala spre exterior; pornește din stânga-sus, în sensul acelor de ceasornic. */
-function stadium(w: number, h: number, t: number) {
+/** Punct pe conturul unei pastile w × h, la distanța s de-a lungul conturului, cu normala spre exterior. */
+function stadium(w: number, h: number, s: number) {
   const r = h / 2;
   const straight = Math.max(w - h, 0);
   const arc = Math.PI * r;
-  let s = (((t % 1) + 1) % 1) * (2 * straight + 2 * arc);
 
   if (s < straight) return { x: r + s, y: 0, nx: 0, ny: -1 };
   s -= straight;
@@ -57,150 +54,153 @@ function stadium(w: number, h: number, t: number) {
 
 const format = ([x, y]: Point) => `${x.toFixed(1)} ${y.toFixed(1)}`;
 
-/** Curbă netedă (Catmull-Rom) prin puncte. */
-function smoothPath(points: Point[], closed: boolean) {
+/** Curbă închisă și netedă (Catmull-Rom) prin puncte. */
+function smoothClosedPath(points: Point[]) {
   const n = points.length;
-  const at = (i: number) => (closed ? points[(i + n) % n] : points[Math.max(0, Math.min(n - 1, i))]);
+  const at = (i: number) => points[(i + n) % n];
   let d = `M${format(points[0])}`;
-  for (let i = 0; i < (closed ? n : n - 1); i++) {
+  for (let i = 0; i < n; i++) {
     const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
     const c1: Point = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
     const c2: Point = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
     d += `C${format(c1)} ${format(c2)} ${format(p2)}`;
   }
-  return closed ? `${d}Z` : d;
+  return `${d}Z`;
 }
 
-function samples(w: number, h: number) {
-  const perimeter = 2 * Math.max(w - h, 0) + Math.PI * h;
-  return Math.max(16, Math.min(48, Math.round(perimeter / 14)));
-}
+class InkButton {
+  readonly button: HTMLElement;
+  private readonly path: SVGPathElement;
+  private readonly svg: SVGSVGElement;
+  private readonly phases: number[];
+  private width = 0;
+  private height = 0;
+  private time = 0;
+  private amplitude = ENTRY_AMPLITUDE;
+  private speed = REST.speed;
+  private target = REST;
+  visible = false;
 
-interface Shape {
-  fill: Phases;
-  ink: Phases;
-}
+  constructor(button: HTMLElement, index: number) {
+    this.button = button;
+    const random = seededRandom(hash(button.textContent ?? '') + index);
+    this.phases = [random(), random(), random()].map((value) => value * Math.PI * 2);
 
-/** Fundalul: o pastilă închisă, cu marginea ușor ondulată. */
-function fillPath(w: number, h: number, rest: Phases, hover: Phases, mix: number) {
-  const count = samples(w, h);
-  const points: Point[] = [];
-  for (let i = 0; i < count; i++) {
-    const t = i / count;
-    const p = stadium(w, h, t);
-    const offset = 1.6 * (wave(t, rest) * (1 - mix) + wave(t, hover) * mix);
-    points.push([p.x + p.nx * offset, p.y + p.ny * offset]);
+    this.svg = document.createElementNS(SVG_NS, 'svg');
+    this.svg.classList.add('btn-ink');
+    this.svg.setAttribute('aria-hidden', 'true');
+    this.svg.setAttribute('focusable', 'false');
+    this.path = document.createElementNS(SVG_NS, 'path');
+    this.path.classList.add('btn-ink-fill');
+    this.svg.append(this.path);
+    button.prepend(this.svg);
+    button.classList.add('has-ink');
+
+    if (reducedMotion.matches) this.amplitude = REST.amplitude;
+
+    button.addEventListener('pointerenter', (event) => event.pointerType === 'mouse' && this.setHover(true));
+    button.addEventListener('pointerleave', (event) => event.pointerType === 'mouse' && this.setHover(false));
+    button.addEventListener('focus', () => button.matches(':focus-visible') && this.setHover(true));
+    button.addEventListener('blur', () => this.setHover(false));
   }
-  return smoothPath(points, true);
-}
 
-/** Linia de cerneală: puțin în afara butonului, ocolește o dată și puțin peste, ca trasă dintr-o mișcare. */
-function inkPath(w: number, h: number, rest: Phases, hover: Phases, mix: number) {
-  const overshoot = 1.07;
-  const count = Math.round(samples(w, h) * overshoot) + 1;
-  const points: Point[] = [];
-  for (let i = 0; i < count; i++) {
-    const progress = i / (count - 1);
-    const t = 0.03 + overshoot * progress;
-    const p = stadium(w, h, t);
-    const offset = 5 + 2.2 * (wave(t, rest) * (1 - mix) + wave(t, hover) * mix) + 3 * (progress - 0.5);
-    points.push([p.x + p.nx * offset, p.y + p.ny * offset]);
+  resize() {
+    this.width = this.button.offsetWidth;
+    this.height = this.button.offsetHeight;
+    this.svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${this.width + PAD * 2} ${this.height + PAD * 2}`);
+    this.render();
   }
-  return smoothPath(points, false);
-}
 
-function enhance(button: HTMLElement, index: number) {
-  const random = seededRandom(hash(button.textContent ?? '') + index);
-  const phases = () => HARMONICS.map(() => random() * Math.PI * 2);
-  const rest: Shape = { fill: phases(), ink: phases() };
-  const hover: Shape = { fill: phases(), ink: phases() };
-
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.classList.add('btn-ink');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('focusable', 'false');
-  const fill = document.createElementNS(SVG_NS, 'path');
-  fill.classList.add('btn-ink-fill');
-  const line = document.createElementNS(SVG_NS, 'path');
-  line.classList.add('btn-ink-line');
-  line.setAttribute('pathLength', '1');
-  svg.append(fill, line);
-  button.prepend(svg);
-  button.classList.add('has-ink');
-
-  let width = 0;
-  let height = 0;
-  let mix = 0;
-  let frame = 0;
-
-  const render = () => {
-    if (!width || !height) return;
-    fill.setAttribute('d', fillPath(width, height, rest.fill, hover.fill, mix));
-    line.setAttribute('d', inkPath(width, height, rest.ink, hover.ink, mix));
-  };
-
-  new ResizeObserver(() => {
-    width = button.offsetWidth;
-    height = button.offsetHeight;
-    svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${width + PAD * 2} ${height + PAD * 2}`);
-    render();
-  }).observe(button);
-
-  // La hover forma „respiră” spre o altă variantă trasă de mână, apoi revine.
-  const morphTo = (target: number) => {
-    cancelAnimationFrame(frame);
+  setHover(active: boolean) {
+    this.target = active ? HOVER : REST;
     if (reducedMotion.matches) {
-      mix = target;
-      render();
-      return;
+      this.amplitude = this.target.amplitude;
+      this.render();
     }
-    const from = mix;
-    const start = performance.now();
-    const step = (now: number) => {
-      const progress = Math.min(1, (now - start) / 600);
-      mix = from + (target - from) * (1 - Math.pow(1 - progress, 3));
-      render();
-      if (progress < 1) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-  };
+  }
 
-  const redraw = () => {
-    if (reducedMotion.matches || !button.classList.contains('is-drawn')) return;
-    line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
-      duration: 750,
-      easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    });
-  };
+  /** Avansează animația cu dt secunde: undele curg, iar amplitudinea și viteza tind lin spre starea dorită. */
+  tick(dt: number) {
+    const ease = 1 - Math.exp(-dt / (this.amplitude > this.target.amplitude + 0.5 ? 0.45 : 0.22));
+    this.amplitude += (this.target.amplitude - this.amplitude) * ease;
+    this.speed += (this.target.speed - this.speed) * ease;
+    this.time += dt * this.speed;
+    this.render();
+  }
 
-  const enter = () => {
-    morphTo(1);
-    redraw();
-  };
+  private render() {
+    const { width: w, height: h } = this;
+    if (!w || !h) return;
 
-  button.addEventListener('pointerenter', (event) => event.pointerType === 'mouse' && enter());
-  button.addEventListener('pointerleave', (event) => event.pointerType === 'mouse' && morphTo(0));
-  button.addEventListener('focus', () => button.matches(':focus-visible') && enter());
-  button.addEventListener('blur', () => morphTo(0));
+    const perimeter = 2 * Math.max(w - h, 0) + Math.PI * h;
+    const count = Math.max(24, Math.round(perimeter / STEP));
+    // Lungimile de undă se aleg astfel încât conturul să se închidă fără ruptură.
+    const long = Math.max(2, Math.round(perimeter / 95));
+    const short = Math.max(3, Math.round(perimeter / 48));
+    const [p0, p1, p2] = this.phases;
+
+    const points: Point[] = [];
+    for (let i = 0; i < count; i++) {
+      const s = (i / count) * perimeter;
+      const u = (i / count) * Math.PI * 2;
+      const p = stadium(w, h, s);
+      const wave =
+        0.62 * Math.sin(long * u + p0 + this.time) +
+        0.38 * Math.sin(short * u + p1 - this.time * 0.8) +
+        0.35 * Math.sin(u + p2);
+      const offset = this.amplitude * wave;
+      points.push([p.x + p.nx * offset, p.y + p.ny * offset]);
+    }
+    this.path.setAttribute('d', smoothClosedPath(points));
+  }
 }
 
 export function enhanceButtons() {
-  const buttons = document.querySelectorAll<HTMLElement>('.btn:not(.btn-quiet)');
-
-  // Linia se desenează o singură dată, când butonul apare pe ecran.
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('is-drawn');
-        observer.unobserve(entry.target);
-      }
-    },
-    { threshold: 0.6 },
+  const buttons = [...document.querySelectorAll<HTMLElement>('.btn:not(.btn-quiet)')].map(
+    (button, index) => new InkButton(button, index),
   );
+  const byElement = new Map(buttons.map((ink) => [ink.button, ink]));
 
-  buttons.forEach((button, index) => {
-    enhance(button, index);
-    observer.observe(button);
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) byElement.get(entry.target as HTMLElement)?.resize();
+  });
+
+  // Animăm doar butoanele vizibile; cele din afara ecranului stau pe loc.
+  const visibility = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const ink = byElement.get(entry.target as HTMLElement);
+      if (ink) ink.visible = entry.isIntersecting;
+    }
+    start();
+  });
+
+  buttons.forEach((ink) => {
+    resizeObserver.observe(ink.button);
+    visibility.observe(ink.button);
+  });
+
+  let frame = 0;
+  let last = 0;
+  const loop = (now: number) => {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const active = buttons.filter((ink) => ink.visible);
+    active.forEach((ink) => ink.tick(dt));
+    frame = active.length ? requestAnimationFrame(loop) : 0;
+  };
+
+  function start() {
+    if (frame || reducedMotion.matches || document.hidden) return;
+    last = performance.now();
+    frame = requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    } else {
+      start();
+    }
   });
 }
