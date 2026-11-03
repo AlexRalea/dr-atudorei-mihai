@@ -1,0 +1,13 @@
+---
+/** Subliniere scurtă, trasată de mână, sub titlurile de secțiune. */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg class:list={['ink-underline', className]} viewBox="0 0 280 18" fill="none" aria-hidden="true" focusable="false">
+  <path class="ink-stroke" pathLength="1" d="M3 11C55 3 104 14 158 9S236 4 277 9"></path>
+  <path class="ink-stroke ink-echo" pathLength="1" d="M51 15C106 11 170 16 226 12"></path>
+</svg>

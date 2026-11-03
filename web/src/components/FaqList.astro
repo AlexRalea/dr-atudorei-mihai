@@ -1,60 +1,73 @@
 ---
 import type { Faq } from '../lib/types';
 import Icon from './Icon.astro';
+import InkDivider from './ink/InkDivider.astro';
 
 interface Props {
   faqs: Faq[];
+  /** Deschide primul răspuns de la început. */
+  openFirst?: boolean;
+  /** Nume de grup: când e setat, se poate deschide un singur răspuns odată. */
+  group?: string;
 }
 
-const { faqs } = Astro.props;
+const { faqs, openFirst = false, group } = Astro.props;
 ---
 
 <div class="faq-list">
+  <InkDivider class="faq-divider faq-divider-top" />
   {
-    faqs.map((faq) => (
-      <details class="faq-item">
-        <summary>
-          <span>{faq.question}</span>
-          <span class="faq-icon" aria-hidden="true">
-            <Icon name="chevron-down" size={20} />
-          </span>
-        </summary>
-        <div class="faq-answer">
-          <p>{faq.answer}</p>
-        </div>
-      </details>
+    faqs.map((faq, index) => (
+      <div class="faq-item" data-ink-hover>
+        <details name={group} open={openFirst && index === 0}>
+          <summary>
+            <span>{faq.question}</span>
+            <span class="faq-icon" aria-hidden="true">
+              <Icon name="plus" size={20} />
+            </span>
+          </summary>
+          <div class="faq-answer">
+            <p>{faq.answer}</p>
+          </div>
+        </details>
+        <InkDivider class="faq-divider" variant={index + 1} />
+      </div>
     ))
   }
 </div>
 
 <style>
   .faq-list {
-    display: grid;
-    gap: 0.6rem;
+    --ink-rule: #c9bbad;
+    position: relative;
   }
 
   .faq-item {
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius);
-    background: var(--color-surface);
-    transition:
-      border-color 260ms var(--ease),
-      box-shadow 260ms var(--ease);
+    position: relative;
   }
 
-  .faq-item[open] {
-    border-color: var(--color-dusty);
-    box-shadow: var(--shadow-sm);
+  .faq-list :global(.faq-divider) {
+    position: absolute;
+    bottom: -7px;
+    left: 0;
+  }
+
+  .faq-list :global(.faq-divider-top) {
+    top: -7px;
+    bottom: auto;
   }
 
   summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.9rem 1.15rem;
-    font-weight: 600;
-    font-size: 1.125rem;
+    gap: 25px;
+    min-height: 84px;
+    padding-block: 23px;
+    font-size: 1.25rem;
+    font-weight: 550;
+    line-height: 1.4;
+    color: var(--color-navy);
     cursor: pointer;
     list-style: none;
   }
@@ -63,51 +76,66 @@ const { faqs } = Astro.props;
     display: none;
   }
 
-  summary:focus-visible {
-    outline-offset: -3px;
-    border-radius: var(--radius);
-  }
-
   .faq-icon {
     display: grid;
     flex-shrink: 0;
     place-items: center;
-    width: 2rem;
-    height: 2rem;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--color-line-strong);
     border-radius: 50%;
-    background: var(--color-dusty-soft);
-    color: var(--color-dusty-deep);
+    color: var(--color-action);
     transition:
-      transform 320ms var(--ease),
-      background-color 320ms var(--ease);
+      background var(--motion-medium),
+      border-color var(--motion-medium),
+      transform var(--motion-medium) var(--ease);
   }
 
-  .faq-item[open] .faq-icon {
-    transform: rotate(180deg);
+  .faq-item [open] .faq-icon {
+    transform: rotate(45deg);
     background: var(--color-dusty-light);
+    border-color: var(--color-dusty-light);
   }
 
-  .faq-answer {
-    padding: 0 1.15rem 1.1rem;
+  .faq-answer p {
+    max-width: 830px;
+    padding: 0 60px 25px 0;
+    font-size: 1.125rem;
+    line-height: 1.7;
     color: var(--color-text-muted);
   }
 
   /* Deschidere lină, acolo unde browserul o permite. */
-  .faq-item::details-content {
+  .faq-item details::details-content {
     block-size: 0;
     overflow: hidden;
+    opacity: 0;
     transition:
-      block-size 360ms var(--ease),
-      content-visibility 360ms allow-discrete;
+      block-size var(--motion-medium) var(--ease),
+      opacity 300ms,
+      content-visibility var(--motion-medium) allow-discrete;
   }
 
-  .faq-item[open]::details-content {
+  .faq-item details[open]::details-content {
     block-size: auto;
+    opacity: 1;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .faq-item::details-content {
-      transition: none;
+  @media (max-width: 640px) {
+    summary {
+      gap: 17px;
+      min-height: 82px;
+      padding-block: 22px;
+      font-size: 1.1875rem;
+    }
+
+    .faq-icon {
+      width: 30px;
+      height: 30px;
+    }
+
+    .faq-answer p {
+      padding: 0 7px 24px 0;
     }
   }
 </style>

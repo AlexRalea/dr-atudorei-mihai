@@ -1,0 +1,21 @@
+---
+/** Desenul în linie al unei mâini, folosit ca ilustrație decorativă. */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg class:list={['hand-art', className]} viewBox="0 0 300 340" fill="none" aria-hidden="true" focusable="false">
+  <g stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <path
+      pathLength="1"
+      d="M109 298c2-34-10-49-24-66L49 187c-8-10-6-21 1-26 8-6 17-2 24 5l30 30-26-95c-4-14 0-23 9-25 11-3 17 5 21 18l19 63-7-104c-1-14 4-23 14-23 11-1 16 7 17 20l8 101 8-116c1-14 6-21 16-20 10 1 14 9 13 23l-5 117 19-92c3-13 9-19 18-17 10 3 12 12 9 25l-18 115c-3 26-2 53-12 77-9 22-18 34-17 65"
+    ></path>
+    <path
+      d="M104 196c17-9 37-9 54-1 16 8 27 21 28 39M128 158l5 25m27-32-1 26m33-28-7 32m-79 61c17 1 36 9 48 23m-35 33c16 5 37 6 59 0"
+    ></path>
+    <path d="M82 107l19-5m22-33 27-2m17-14 28 1m13 35 24 5" opacity=".45"></path>
+  </g>
+</svg>

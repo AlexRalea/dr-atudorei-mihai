@@ -1,0 +1,30 @@
+---
+/** Ornament curb, trasat de mână, pentru colțurile secțiunilor. */
+interface Props {
+  variant?: 'left' | 'right';
+  class?: string;
+}
+
+const { variant = 'left', class: className } = Astro.props;
+---
+
+<svg class:list={['ink-flourish', className]} viewBox="0 0 240 330" fill="none" aria-hidden="true" focusable="false">
+  {
+    variant === 'left' ? (
+      <>
+        <path
+          class="ink-stroke"
+          pathLength="1"
+          d="M-12 305C77 310 174 249 171 175C169 124 119 87 76 110C38 130 60 178 98 163C161 137 190 55 160-18"
+        />
+        <path class="ink-stroke ink-echo" pathLength="1" d="M-16 319C73 324 185 254 183 179C181 127 126 75 77 98" />
+      </>
+    ) : (
+      <path
+        class="ink-stroke"
+        pathLength="1"
+        d="M249 17C160-5 73 40 72 106C71 147 114 178 147 160C175 145 165 117 141 122C104 130 79 202 94 244C108 281 174 298 246 277"
+      />
+    )
+  }
+</svg>

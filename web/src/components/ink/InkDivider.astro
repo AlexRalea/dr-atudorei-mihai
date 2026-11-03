@@ -1,0 +1,24 @@
+---
+/** Separator orizontal trasat de mână; linia de accent apare pe elementul activ ([data-ink-hover]). */
+interface Props {
+  variant?: number;
+  class?: string;
+}
+
+const rules = [
+  'M2 9C108 3 197 16 300 10S475 4 595 9S783 15 898 8',
+  'M2 8C135 14 221 3 334 9S540 15 656 8S803 4 898 10',
+  'M2 11C100 4 235 6 350 10S527 14 641 7S798 5 898 10',
+  'M2 8C96 13 218 15 334 8S543 3 667 10S825 14 898 8',
+];
+
+const { variant = 0, class: className } = Astro.props;
+const path = rules[variant % rules.length];
+---
+
+<svg class:list={['ink-divider', className]} viewBox="0 0 900 18" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <g class="ink-rule-curve">
+    <path class="ink-rule-base" d={path}></path>
+    <path class="ink-rule-accent" d={path} pathLength="1"></path>
+  </g>
+</svg>

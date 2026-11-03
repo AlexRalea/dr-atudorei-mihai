@@ -3,6 +3,7 @@ import { getConditions, getPages, getSettings } from '../lib/content';
 import { isPlaceholder, telHref } from '../lib/format';
 import { MEDICAL_DISCLAIMER } from '../lib/labels';
 import { routes } from '../lib/routes';
+import Brand from './Brand.astro';
 import Icon from './Icon.astro';
 
 const [settings, conditions, pages] = await Promise.all([getSettings(), getConditions(), getPages()]);
@@ -28,27 +29,24 @@ const legalPages = footerPages.filter((page) => legalSlugs.includes(page.slug));
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <p class="footer-name">{settings.siteName}</p>
-        <p class="footer-specialty">{settings.specialty}</p>
-        <p class="footer-text">
-          Consultații și tratament pentru afecțiunile mâinii, pumnului și degetelor, explicate pe înțeles.
-        </p>
+        <Brand footer />
+        <p>Consultații și tratament pentru afecțiunile mâinii, pumnului și degetelor, explicate pe înțeles.</p>
         <a href={routes.appointment} class="btn btn-light btn-sm">
           <Icon name="calendar-check" size={18} />
           Programează o consultație
         </a>
       </div>
 
-      <nav class="footer-col" aria-label="Pagini">
-        <p class="footer-title">Explorează</p>
+      <nav class="footer-column" aria-label="Pagini">
+        <h2>Explorează</h2>
         <ul>
           {explore.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
           {infoPages.map((page) => <li><a href={routes.page(page.slug)}>{page.title}</a></li>)}
         </ul>
       </nav>
 
-      <nav class="footer-col" aria-label="Afecțiuni">
-        <p class="footer-title">Afecțiuni</p>
+      <nav class="footer-column" aria-label="Afecțiuni">
+        <h2>Afecțiuni</h2>
         <ul>
           {
             conditions.slice(0, 6).map((condition) => (
@@ -60,9 +58,9 @@ const legalPages = footerPages.filter((page) => legalSlugs.includes(page.slug));
         </ul>
       </nav>
 
-      <div class="footer-col">
-        <p class="footer-title">Contact</p>
-        <ul class="footer-contact">
+      <div class="footer-contact">
+        <h2>Contact</h2>
+        <ul>
           {
             tel && (
               <li>
@@ -80,7 +78,7 @@ const legalPages = footerPages.filter((page) => legalSlugs.includes(page.slug));
             )
           }
           <li>
-            <Icon name="map-pin" size={18} />
+            <Icon name="map-pin" size={19} />
             <span>
               {settings.clinic.name}
               <br />
@@ -101,8 +99,8 @@ const legalPages = footerPages.filter((page) => legalSlugs.includes(page.slug));
       </div>
     </div>
 
-    <p class="footer-disclaimer">
-      <Icon name="info" size={18} />
+    <p class="disclaimer">
+      <Icon name="info" size={19} />
       <span>{MEDICAL_DISCLAIMER}</span>
     </p>
 
@@ -121,128 +119,167 @@ const legalPages = footerPages.filter((page) => legalSlugs.includes(page.slug));
 <style>
   .site-footer {
     margin-top: auto;
-    padding-block: clamp(2.5rem, 2rem + 2.5vw, 4rem) 1.5rem;
+    padding-block: 58px 22px;
     background: var(--color-navy);
-    color: #d5dee8;
+    color: var(--color-dusty-light);
+    font-size: 1rem;
   }
 
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
-    gap: clamp(1.75rem, 1rem + 2vw, 3rem);
+    grid-template-columns: 1.3fr 0.8fr 1fr 1.05fr;
+    gap: 43px;
+    padding-bottom: 38px;
   }
 
-  .footer-name {
-    font-family: var(--font-serif);
-    font-variation-settings: 'SOFT' 100;
-    font-size: 1.625rem;
-    color: #fff;
+  .footer-brand > p {
+    margin-block: 22px 25px;
+    font-size: 1.0625rem;
   }
 
-  .footer-specialty {
-    margin-top: 0.25rem;
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-dusty);
+  h2 {
+    margin-bottom: 18px;
+    font-family: var(--font-sans);
+    font-variation-settings: normal;
+    font-weight: 550;
+    font-size: 1.125rem;
+    letter-spacing: 0;
+    line-height: 1.35;
+    color: var(--color-surface);
   }
 
-  .footer-text {
-    max-width: 32ch;
-    margin: 1rem 0 1.25rem;
-    color: #b9c7d5;
-  }
-
-  .footer-title {
-    margin-bottom: 1rem;
-    font-size: var(--text-sm);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fff;
-  }
-
-  .footer-col ul {
-    display: grid;
-    gap: 0.6rem;
+  ul {
     list-style: none;
   }
 
-  .footer-col a {
-    color: #c9d4df;
-    transition: color 200ms var(--ease);
+  .footer-column li a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 7px;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-dusty-light);
   }
 
-  .footer-col a:hover {
-    color: #fff;
+  .footer-column a:hover,
+  .footer-contact a:hover,
+  .footer-bottom a:hover {
+    color: var(--color-surface);
+    text-decoration: underline;
+    text-underline-offset: 5px;
   }
 
   .footer-contact li {
-    display: grid;
-    grid-template-columns: 18px 1fr;
-    gap: 0.75rem;
-    align-items: start;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 17px;
+    font-size: 0.9375rem;
+    line-height: 1.6;
   }
 
   .footer-contact :global(.icon) {
-    margin-top: 0.3rem;
+    margin-top: 4px;
     color: var(--color-dusty);
   }
 
-  .footer-disclaimer {
+  .disclaimer {
     display: flex;
-    gap: 0.75rem;
-    margin-top: clamp(1.75rem, 1.5rem + 1.5vw, 2.75rem);
-    padding: 1rem 1.25rem;
-    border-radius: var(--radius);
-    background: rgb(255 255 255 / 0.05);
-    font-size: var(--text-sm);
-    color: #b9c7d5;
+    align-items: flex-start;
+    gap: 13px;
+    padding-block: 23px;
+    border-block: 1px solid rgb(255 253 249 / 0.18);
+    font-size: 0.875rem;
   }
 
-  .footer-disclaimer :global(.icon) {
-    flex-shrink: 0;
-    margin-top: 0.15rem;
-    color: var(--color-dusty);
+  .disclaimer :global(.icon) {
+    margin-top: 3px;
   }
 
   .footer-bottom {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid rgb(255 255 255 / 0.1);
-    font-size: var(--text-sm);
-    color: #9fb0c1;
+    gap: 9px 23px;
+    padding-top: 17px;
+    font-size: 0.8125rem;
   }
 
   .footer-bottom ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 1.5rem;
-    list-style: none;
+    gap: 0 23px;
   }
 
-  .footer-bottom a:hover {
-    color: #fff;
+  .footer-bottom a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
     .footer-grid {
-      grid-template-columns: 1fr 1fr;
+      gap: 27px;
     }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 950px) {
+    .footer-grid {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 38px 65px;
+    }
+  }
+
+  @media (max-width: 640px) {
     .site-footer {
-      padding-bottom: 6.5rem;
+      padding-block: 40px 107px;
     }
 
     .footer-grid {
       grid-template-columns: 1fr;
+      gap: 32px;
+      padding-bottom: 30px;
+    }
+
+    .footer-brand > p {
+      margin-block: 20px 24px;
+      font-size: 1.125rem;
+    }
+
+    .footer-brand .btn {
+      min-height: 50px;
+      font-size: 1rem;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+      font-size: 1.3125rem;
+    }
+
+    .footer-column li a {
+      padding-block: 8px;
+      font-size: 1.0625rem;
+    }
+
+    .footer-contact li {
+      font-size: 1.0625rem;
+    }
+
+    .disclaimer {
+      gap: 11px;
+      font-size: 0.9375rem;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 22px;
+      font-size: 0.875rem;
+    }
+
+    .footer-bottom ul {
+      gap: 0 17px;
     }
   }
 </style>

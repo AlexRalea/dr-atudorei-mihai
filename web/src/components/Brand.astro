@@ -1,0 +1,102 @@
+---
+import { getSettings } from '../lib/content';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** Varianta pentru fundalul închis din footer. */
+  footer?: boolean;
+}
+
+const { footer = false } = Astro.props;
+const settings = await getSettings();
+---
+
+<a href="/" class:list={['brand', { 'brand-footer': footer }]} aria-label={`${settings.siteName} — Acasă`}>
+  <span class="brand-mark" aria-hidden="true">
+    <Icon name="hand" size={27} strokeWidth={1.5} />
+  </span>
+  <span>
+    <strong>{settings.siteName}</strong>
+    <small>{settings.specialty}</small>
+  </span>
+</a>
+
+<style>
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    flex-shrink: 0;
+    color: var(--color-navy);
+  }
+
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 47px;
+    height: 47px;
+    border-radius: 50%;
+    background: var(--color-dusty-light);
+    color: var(--color-action);
+    transition: transform var(--motion-medium) var(--ease);
+  }
+
+  .brand:hover .brand-mark {
+    transform: rotate(-7deg);
+  }
+
+  strong {
+    display: block;
+    font-family: var(--font-serif);
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 480;
+    font-size: 1.25rem;
+    letter-spacing: -0.6px;
+    line-height: 1.3;
+  }
+
+  small {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+
+  .brand-footer {
+    color: var(--color-surface);
+  }
+
+  .brand-footer .brand-mark {
+    background: rgb(255 253 249 / 0.07);
+    color: var(--color-dusty-light);
+  }
+
+  .brand-footer small {
+    color: var(--color-dusty-light);
+  }
+
+  @media (max-width: 640px) {
+    .brand {
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 41px;
+      height: 41px;
+    }
+
+    .brand-mark :global(.icon) {
+      width: 24px;
+      height: 24px;
+    }
+
+    strong {
+      font-size: 1.125rem;
+    }
+
+    small {
+      font-size: 0.75rem;
+    }
+  }
+</style>

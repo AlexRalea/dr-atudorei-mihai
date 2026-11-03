@@ -3,6 +3,7 @@ import { getSettings } from '../lib/content';
 import { telHref } from '../lib/format';
 import { routes } from '../lib/routes';
 import Icon from './Icon.astro';
+import HandArt from './ink/HandArt.astro';
 
 interface Props {
   title?: string;
@@ -16,105 +17,153 @@ const {
 
 const settings = await getSettings();
 const tel = telHref(settings.phone);
+
+// Titlul implicit are două fraze; fiecare stă pe rândul ei.
+const [firstLine, ...rest] = title.split(/(?<=\?)\s+/);
 ---
 
-<section class="section-tight">
+<section class="cta-section">
   <div class="container">
     <div class="cta-band" data-reveal>
+      <div class="cta-decoration" aria-hidden="true">
+        <HandArt />
+      </div>
       <div class="cta-text">
-        <h2>{title}</h2>
+        <h2>
+          {firstLine}
+          {rest.length > 0 && <br />}
+          {rest.join(' ')}
+        </h2>
         <p>{text}</p>
       </div>
       <div class="cta-actions">
         <a href={routes.appointment} class="btn btn-light">
-          <Icon name="calendar-check" size={20} />
+          <Icon name="calendar-check" size={18} />
           Programează o consultație
         </a>
         {
           tel && (
-            <a href={tel} class="btn btn-ghost-light">
-              <Icon name="phone" size={20} />
+            <a href={tel} class="btn btn-transparent">
+              <Icon name="phone" size={18} />
               {settings.phone}
             </a>
           )
         }
       </div>
-      <svg class="cta-shape" viewBox="0 0 400 400" aria-hidden="true">
-        <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1"></circle>
-        <circle cx="200" cy="200" r="110" fill="none" stroke="currentColor" stroke-width="1"></circle>
-        <circle cx="200" cy="200" r="60" fill="none" stroke="currentColor" stroke-width="1"></circle>
-      </svg>
     </div>
   </div>
 </section>
 
 <style>
+  .cta-section {
+    padding-block: 64px;
+  }
+
   .cta-band {
     position: relative;
     overflow: hidden;
     display: grid;
-    grid-template-columns: 1.4fr auto;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 1.5rem 3rem;
-    padding: clamp(1.75rem, 1.25rem + 2vw, 3rem);
-    border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, var(--color-navy) 0%, #34506a 100%);
-    color: #e6edf3;
+    gap: 60px;
+    padding: 50px 53px;
+    border-radius: 28px;
+    background: var(--color-navy);
+    color: var(--color-surface);
   }
 
-  .cta-text {
-    position: relative;
-    z-index: 1;
-  }
-
-  .cta-text > * + * {
-    margin-top: 0.75rem;
-  }
-
-  h2 {
-    color: #fff;
-    max-width: 22ch;
-  }
-
-  p {
-    max-width: 46ch;
-    color: #c9d6e2;
-    font-size: var(--text-lg);
-  }
-
+  .cta-text,
   .cta-actions {
     position: relative;
     z-index: 1;
-    display: grid;
-    gap: 0.75rem;
   }
 
-  .btn-ghost-light {
-    --btn-bg: rgb(255 255 255 / 0.08);
-    --btn-fg: #fff;
-    --btn-border: rgb(255 255 255 / 0.25);
+  h2 {
+    font-size: 2.5625rem;
+    line-height: 1.15;
+    color: var(--color-surface);
   }
 
-  .btn-ghost-light:hover {
-    --btn-bg: rgb(255 255 255 / 0.14);
+  p {
+    max-width: 590px;
+    margin-top: 20px;
+    font-size: 1.125rem;
+    color: var(--color-dusty-light);
   }
 
-  .cta-shape {
+  .cta-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    min-width: 270px;
+  }
+
+  .cta-decoration {
     position: absolute;
-    right: -6rem;
-    bottom: -9rem;
-    width: 26rem;
-    color: rgb(157 184 205 / 0.25);
-    pointer-events: none;
+    right: 110px;
+    bottom: -200px;
+    width: 430px;
+    height: 490px;
+    transform: rotate(25deg);
+    opacity: 0.1;
   }
 
-  @media (max-width: 860px) {
+  .cta-decoration :global(.hand-art) {
+    color: var(--color-surface);
+  }
+
+  @media (max-width: 950px) {
     .cta-band {
-      grid-template-columns: 1fr;
+      gap: 30px;
+      padding: 38px;
+    }
+
+    h2 {
+      font-size: 2.125rem;
     }
 
     .cta-actions {
-      justify-items: start;
+      min-width: 235px;
+    }
+
+    .cta-actions .btn {
+      padding-inline: 17px;
+      font-size: 0.875rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cta-section {
+      padding-block: 40px;
+    }
+
+    .cta-band {
+      grid-template-columns: 1fr;
+      gap: 27px;
+      padding: 32px 25px;
+      border-radius: 24px;
+    }
+
+    h2 {
+      font-size: 2.0625rem;
+    }
+
+    .cta-actions {
+      min-width: 0;
+      gap: 11px;
+    }
+
+    .cta-actions .btn {
+      min-height: 50px;
+      padding-inline: 12px;
+      font-size: 0.9375rem;
+    }
+
+    .cta-decoration {
+      right: -70px;
+      bottom: -70px;
+      width: 300px;
+      height: 400px;
     }
   }
 </style>
