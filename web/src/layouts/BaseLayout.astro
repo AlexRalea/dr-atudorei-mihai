@@ -65,12 +65,10 @@ const seo = Astro.props;
       );
       document.querySelectorAll('[data-ink]').forEach((item) => inkObserver.observe(item));
 
-      // Starea de scroll: header-ul se micșorează, iar bara de progres arată cât s-a citit.
+      // Header-ul se micșorează după ce pagina a fost derulată.
       let frame = 0;
       const updateScroll = () => {
         frame = 0;
-        const available = root.scrollHeight - window.innerHeight;
-        root.style.setProperty('--page-progress', String(available > 0 ? window.scrollY / available : 0));
         root.toggleAttribute('data-scrolled', window.scrollY > 40);
       };
       const onScroll = () => {
@@ -78,7 +76,6 @@ const seo = Astro.props;
       };
       updateScroll();
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll);
     </script>
   </body>
 </html>
