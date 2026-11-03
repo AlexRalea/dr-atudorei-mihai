@@ -1,7 +1,7 @@
 /**
  * Butoane „trase de mână”: forma butonului e desenată ca liniile ondulate din secțiuni.
  * Marginile sunt unde line care curg încet; la apariție forma se liniștește din unde mai mari,
- * iar la hover undele cresc și se mișcă mai repede. Forma se calculează pentru dimensiunea
+ * iar la hover undele se netezesc până la pastila obișnuită. Forma se calculează pentru dimensiunea
  * reală a butonului, deci nu se deformează. Fără JavaScript, butoanele rămân pastile obișnuite.
  */
 
@@ -11,7 +11,8 @@ const STEP = 7;
 
 /** Amplitudinea undelor (px) și viteza cu care curg (radiani pe secundă). */
 const REST = { amplitude: 2.1, speed: 0.7 };
-const HOVER = { amplitude: 3.4, speed: 2.6 };
+// La hover undele dispar: butonul revine lin la pastila obișnuită.
+const HOVER = { amplitude: 0, speed: REST.speed };
 const ENTRY_AMPLITUDE = 5.5;
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');

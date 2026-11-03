@@ -434,7 +434,7 @@ button {
 }
 
 /* Butoane „trase de mână” (vezi scripts/ink-buttons.ts): forma butonului devine un desen SVG
-   cu margini ondulate, care curg încet și se agită mai tare la hover. */
+   cu margini ondulate, care curg încet și se netezesc la hover. */
 .btn.has-ink {
   border-color: transparent;
   background: transparent;
