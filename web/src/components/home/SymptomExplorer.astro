@@ -88,7 +88,7 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
 
 <style is:global>
   .symptom-explorer {
-    --choices-h: 640px;
+    --choices-h: 500px;
     display: grid;
     grid-template-columns: 1fr 1.1fr 1fr;
     gap: 28px;
@@ -103,18 +103,17 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
     height: var(--choices-h);
   }
 
+  /* Toate cardurile pornesc de la zero și primesc o parte din spațiul liber (flex-grow), fără să coboare
+     sub conținutul lor. Doar flex-grow se schimbă, așa că trecerile sunt line în ambele coloane. */
   .symptom-choice {
     display: flex;
     flex-direction: column;
     flex: 1 1 0;
-    min-height: 0;
-    overflow: hidden;
     border: 1px solid var(--color-line);
     border-radius: 16px;
     background: var(--color-bg);
     transition:
       flex-grow var(--motion-medium) var(--ease),
-      flex-basis var(--motion-medium) var(--ease),
       background var(--motion-medium),
       border-color var(--motion-medium),
       box-shadow var(--motion-medium),
@@ -128,11 +127,11 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
   }
 
   .symptom-choices:has(.is-selected) .symptom-choice {
-    flex: 0 0 auto;
+    flex-grow: 0;
   }
 
   .symptom-choices .symptom-choice.is-selected {
-    flex: 1 1 0;
+    flex-grow: 1;
     border-color: var(--color-dusty);
     background: var(--color-dusty-soft);
     box-shadow: var(--shadow-soft);
@@ -193,14 +192,23 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
 
   .symptom-meta {
     display: block;
+    max-height: 3em;
     margin-block: 12px 18px;
+    overflow: hidden;
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--color-text-muted);
+    transition:
+      max-height var(--motion-medium) var(--ease),
+      margin var(--motion-medium) var(--ease),
+      opacity 300ms;
   }
 
+  /* Cardurile strânse păstrează doar întrebarea. */
   .symptom-choices:has(.is-selected) .symptom-choice:not(.is-selected) .symptom-meta {
-    margin-block: 6px 16px;
+    max-height: 0;
+    margin-block: 0 16px;
+    opacity: 0;
   }
 
   .symptom-meta strong {
@@ -248,30 +256,23 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
     border-top: 1px solid var(--color-dusty-light);
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 2;
     font-size: 0.9375rem;
     line-height: 1.55;
     color: var(--color-text-muted);
   }
 
-  .symptom-list {
-    display: grid;
-    gap: 6px;
-    list-style: none;
+  /* Măsurarea înălțimii naturale (vezi scriptul): fără tranziții și fără carduri deschise. */
+  .symptom-explorer.is-measuring * {
+    transition: none !important;
   }
 
-  .symptom-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 0.875rem;
-    line-height: 1.45;
-    color: var(--color-navy);
+  .symptom-explorer.is-measuring .symptom-choices {
+    height: auto;
   }
 
-  .symptom-list .icon {
-    margin-top: 2px;
-    color: var(--color-action);
+  .symptom-explorer.is-measuring .symptom-choice {
+    flex: none;
   }
 
   .symptom-detail .link-arrow {
@@ -424,7 +425,7 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
 
   @media (max-width: 1200px) {
     .symptom-explorer {
-      --choices-h: 700px;
+      --choices-h: 540px;
       grid-template-columns: 1fr 0.95fr 1fr;
       gap: 20px;
     }
@@ -459,7 +460,7 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
 
   @media (max-width: 950px) {
     .symptom-explorer {
-      --choices-h: 620px;
+      --choices-h: 500px;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
@@ -606,6 +607,36 @@ const art = conditions.map((condition) => conditionArt(condition.slug));
       button.addEventListener('click', () => select(button.dataset.select!));
     });
 
+    // Înălțimea coloanelor: cea mai mare dintre înălțimea naturală a trei carduri închise și cea necesară
+    // fiecărui card deschis, ca secțiunea să nu se miște și niciun card să nu iasă din coloană.
+    const fit = () => {
+      const columns = [...explorer.querySelectorAll<HTMLElement>('.symptom-choices')];
+      const choices = [...explorer.querySelectorAll<HTMLElement>('.symptom-choice')];
+      const selected = choices.find((choice) => choice.classList.contains('is-selected'));
+      const tallest = () => Math.max(...columns.map((column) => column.scrollHeight));
+
+      explorer.classList.add('is-measuring');
+      selected?.classList.remove('is-selected');
+      let height = tallest();
+      for (const choice of choices) {
+        choice.classList.add('is-selected');
+        height = Math.max(height, tallest());
+        choice.classList.remove('is-selected');
+      }
+      selected?.classList.add('is-selected');
+      explorer.style.setProperty('--choices-h', `${height}px`);
+      void explorer.offsetHeight;
+      explorer.classList.remove('is-measuring');
+    };
+
     select('0', false);
+    fit();
+    document.fonts.ready.then(fit);
+    let width = explorer.offsetWidth;
+    new ResizeObserver(() => {
+      if (explorer.offsetWidth === width) return;
+      width = explorer.offsetWidth;
+      fit();
+    }).observe(explorer);
   });
 </script>

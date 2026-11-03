@@ -10,7 +10,6 @@ interface Props {
 }
 
 const { condition, index, selected } = Astro.props;
-const symptoms = condition.symptoms.slice(0, 2);
 ---
 
 <div class:list={['symptom-choice', { 'is-selected': selected }]} data-reveal data-symptom={index}>
@@ -33,18 +32,6 @@ const symptoms = condition.symptoms.slice(0, 2);
   <div class="symptom-detail" id={`symptom-detail-${index}`}>
     <div class="symptom-detail-inner">
       <p class="symptom-summary">{condition.summary}</p>
-      {
-        symptoms.length > 0 && (
-          <ul class="symptom-list">
-            {symptoms.map((symptom) => (
-              <li>
-                <Icon name="check" size={16} />
-                <span>{symptom}</span>
-              </li>
-            ))}
-          </ul>
-        )
-      }
       <a href={routes.condition(condition.slug)} class="link-arrow">
         Află mai multe
         <Icon name="arrow-right" size={18} />
