@@ -1,6 +1,6 @@
 ---
 import { getSettings } from '../lib/content';
-import Icon from './Icon.astro';
+import Logo from './Logo.astro';
 
 interface Props {
   /** Varianta pentru fundalul închis din footer. */
@@ -12,9 +12,7 @@ const settings = await getSettings();
 ---
 
 <a href="/" class:list={['brand', { 'brand-footer': footer }]} aria-label={`${settings.siteName} — Acasă`}>
-  <span class="brand-mark" aria-hidden="true">
-    <Icon name="hand" size={27} strokeWidth={1.5} />
-  </span>
+  <Logo class="brand-mark" weight={3} />
   <span>
     <strong>{settings.siteName}</strong>
     <small>{settings.specialty}</small>
@@ -31,19 +29,15 @@ const settings = await getSettings();
     color: var(--color-navy);
   }
 
-  .brand-mark {
-    display: grid;
-    place-items: center;
-    width: 47px;
-    height: 47px;
-    border-radius: 50%;
-    background: var(--color-dusty-light);
+  .brand :global(.brand-mark) {
+    width: 46px;
+    height: 48px;
     color: var(--color-action);
     transition: transform var(--motion-medium) var(--ease);
   }
 
-  .brand:hover .brand-mark {
-    transform: rotate(-7deg);
+  .brand:hover :global(.brand-mark) {
+    transform: rotate(-6deg);
   }
 
   strong {
@@ -67,8 +61,7 @@ const settings = await getSettings();
     color: var(--color-surface);
   }
 
-  .brand-footer .brand-mark {
-    background: rgb(255 253 249 / 0.07);
+  .brand-footer :global(.brand-mark) {
     color: var(--color-dusty-light);
   }
 
@@ -81,14 +74,9 @@ const settings = await getSettings();
       gap: 10px;
     }
 
-    .brand-mark {
-      width: 41px;
-      height: 41px;
-    }
-
-    .brand-mark :global(.icon) {
-      width: 24px;
-      height: 24px;
+    .brand :global(.brand-mark) {
+      width: 40px;
+      height: 42px;
     }
 
     strong {
