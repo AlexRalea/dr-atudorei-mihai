@@ -1,19 +1,20 @@
 import { isPlaceholder, telHref } from './format.ts';
 import { toPlainText } from './portable-text.ts';
+import { routes } from './routes.ts';
 import type { Article, Condition, Doctor, Faq, Service, SiteSettings } from './types.ts';
 
 type JsonLd = Record<string, unknown>;
 
 const absolute = (site: URL, path: string) => new URL(path, site).href;
 
-export const physicianId = (site: URL) => absolute(site, '/#medic');
+export const physicianId = (site: URL) => absolute(site, `${routes.home}#medic`);
 
 export function websiteSchema(site: URL, settings: SiteSettings): JsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': absolute(site, '/#website'),
-    url: site.href,
+    '@id': absolute(site, `${routes.home}#website`),
+    url: absolute(site, routes.home),
     name: settings.siteName,
     inLanguage: 'ro-RO',
     publisher: { '@id': physicianId(site) },
@@ -40,7 +41,7 @@ export function physicianSchema(site: URL, settings: SiteSettings, doctor: Docto
     '@id': physicianId(site),
     name: doctor.name,
     description: settings.description,
-    url: site.href,
+    url: absolute(site, routes.home),
     medicalSpecialty: 'Surgical',
     telephone: telHref(settings.phone) ? settings.phone : undefined,
     email: isPlaceholder(settings.email) ? undefined : settings.email,
@@ -127,7 +128,7 @@ export function articleSchema(site: URL, article: Article, doctor: Doctor, path:
     datePublished: article.publishedAt,
     dateModified: article.reviewedAt ?? article.publishedAt,
     image: article.cover?.url,
-    author: { '@type': 'Person', name: doctor.name, url: absolute(site, '/despre/') },
+    author: { '@type': 'Person', name: doctor.name, url: absolute(site, routes.about) },
     publisher: { '@id': physicianId(site) },
   };
 }

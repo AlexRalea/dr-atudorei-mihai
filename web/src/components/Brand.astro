@@ -1,5 +1,6 @@
 ---
 import { getSettings } from '../lib/content';
+import { routes } from '../lib/routes';
 import Logo from './Logo.astro';
 
 interface Props {
@@ -11,7 +12,7 @@ const { footer = false } = Astro.props;
 const settings = await getSettings();
 ---
 
-<a href="/" class:list={['brand', { 'brand-footer': footer }]} aria-label={`${settings.siteName} — Acasă`}>
+<a href={routes.home} class:list={['brand', { 'brand-footer': footer }]} aria-label={`${settings.siteName} — Acasă`}>
   <Logo class="brand-mark" weight={3} />
   <span>
     <strong>{settings.siteName}</strong>

@@ -1,4 +1,5 @@
 import { slugify } from './format.ts';
+import { withBase } from './routes.ts';
 import type { PortableTextContent, PTBlock, PTCallout, PTImage } from './types.ts';
 
 export type PTGroup =
@@ -22,7 +23,7 @@ function renderSpans(block: PTBlock): string {
           if (def?._type === 'link' && def.href) {
             const external = /^https?:\/\//.test(def.href);
             const attrs = external ? ' target="_blank" rel="noopener noreferrer"' : '';
-            html = `<a href="${escapeHtml(def.href)}"${attrs}>${html}</a>`;
+            html = `<a href="${escapeHtml(withBase(def.href))}"${attrs}>${html}</a>`;
           }
         }
       }

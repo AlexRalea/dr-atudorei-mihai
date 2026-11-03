@@ -1,5 +1,6 @@
 ---
 import { getSettings } from '../lib/content';
+import { withBase } from '../lib/routes';
 import type { ImageData } from '../lib/types';
 
 export interface SeoProps {
@@ -17,7 +18,7 @@ const settings = await getSettings();
 const fullTitle = title ? `${title} | ${settings.siteName}` : `${settings.siteName} · ${settings.specialty}`;
 const metaDescription = description || settings.description;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = image?.url ?? new URL('/og-default.png', Astro.site).href;
+const ogImage = image?.url ?? new URL(withBase('/og-default.png'), Astro.site).href;
 
 // Până la setarea domeniului final, site-ul nu se lasă indexat.
 const blockIndexing = noindex || !import.meta.env.PUBLIC_SITE_URL;

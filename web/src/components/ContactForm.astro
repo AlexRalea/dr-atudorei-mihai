@@ -1,11 +1,11 @@
 ---
-import { routes } from '../lib/routes';
+import { routes, withBase } from '../lib/routes';
 import Icon from './Icon.astro';
 
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 
-<form class="contact-form" method="post" action="/api/contact" data-contact-form>
+<form class="contact-form" method="post" action={withBase('/api/contact')} data-contact-form>
   <div class="field-row">
     <div class="field">
       <label for="nume">Nume și prenume</label>

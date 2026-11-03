@@ -8,6 +8,7 @@ import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import MobileBar from '../components/MobileBar.astro';
 import Seo, { type SeoProps } from '../components/Seo.astro';
+import { withBase } from '../lib/routes';
 
 type Props = SeoProps;
 
@@ -22,10 +23,10 @@ const seo = Astro.props;
     <script is:inline>
       document.documentElement.classList.replace('no-js', 'js');
     </script>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={withBase('/favicon-32.png')} type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <meta name="theme-color" content="#faf7f2" />
     <Seo {...seo} />
   </head>
